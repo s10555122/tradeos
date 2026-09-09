@@ -1,0 +1,5383 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRADE OS</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+:root{
+    --bg:#08090c;
+    --bg2:#0d0f13;
+    --panel:rgba(25,28,34,.78);
+    --panel2:rgba(31,35,42,.72);
+    --line:rgba(255,255,255,.08);
+    --text:#f5f5f7;
+    --muted:#8e939d;
+    --green:#34d399;
+    --red:#ff5f57;
+    --blue:#60a5fa;
+    --yellow:#fbbf24;
+    --purple:#a78bfa;
+    --shadow:0 25px 80px rgba(0,0,0,.45);
+}
+
+html,body{
+    min-height:100%;
+    background:
+        radial-gradient(circle at 15% 15%,rgba(96,165,250,.10),transparent 28%),
+        radial-gradient(circle at 85% 20%,rgba(167,139,250,.08),transparent 30%),
+        radial-gradient(circle at 50% 100%,rgba(52,211,153,.06),transparent 35%),
+        #08090c;
+    color:var(--text);
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        "SF Pro Text",
+        "Segoe UI",
+        sans-serif;
+}
+
+body{
+    overflow-x:hidden;
+}
+
+button,input{
+    font:inherit;
+}
+
+button{
+    border:0;
+    cursor:pointer;
+}
+
+.app{
+    display:flex;
+    min-height:100vh;
+}
+
+/* =========================
+   BACKGROUND
+========================= */
+
+.bg-orb{
+    position:fixed;
+    width:420px;
+    height:420px;
+    border-radius:50%;
+    filter:blur(100px);
+    pointer-events:none;
+    opacity:.14;
+    z-index:0;
+}
+
+.orb1{
+    background:#3b82f6;
+    top:-180px;
+    left:15%;
+}
+
+.orb2{
+    background:#8b5cf6;
+    right:-180px;
+    top:25%;
+}
+
+.orb3{
+    background:#10b981;
+    bottom:-220px;
+    left:30%;
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+
+.sidebar{
+    width:250px;
+    padding:22px 16px;
+    border-right:1px solid var(--line);
+    background:rgba(10,11,14,.72);
+    backdrop-filter:blur(28px);
+    position:fixed;
+    top:0;
+    bottom:0;
+    z-index:20;
+}
+
+.logo{
+    padding:10px 12px 28px;
+}
+
+.logo-title{
+    font-size:20px;
+    font-weight:800;
+    letter-spacing:-.8px;
+}
+
+.logo-sub{
+    font-size:11px;
+    color:var(--muted);
+    margin-top:5px;
+    letter-spacing:1.5px;
+}
+
+.nav{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+}
+
+.nav-btn{
+    width:100%;
+    text-align:left;
+    color:#969aa3;
+    background:transparent;
+    padding:13px 14px;
+    border-radius:13px;
+    transition:.25s;
+}
+
+.nav-btn:hover{
+    background:rgba(255,255,255,.055);
+    color:white;
+}
+
+.nav-btn.active{
+    background:linear-gradient(
+        135deg,
+        rgba(255,255,255,.12),
+        rgba(255,255,255,.055)
+    );
+    color:white;
+    box-shadow:
+        inset 0 1px rgba(255,255,255,.08),
+        0 8px 25px rgba(0,0,0,.15);
+}
+
+.nav-label{
+    font-size:13px;
+}
+
+.nav-group{
+    margin-top:24px;
+    margin-bottom:8px;
+    padding-left:12px;
+    color:#555b66;
+    font-size:10px;
+    letter-spacing:1.5px;
+}
+
+/* =========================
+   MAIN
+========================= */
+
+.main{
+    margin-left:250px;
+    width:calc(100% - 250px);
+    padding:30px 34px 80px;
+    position:relative;
+    z-index:2;
+}
+
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+}
+
+.page-title{
+    font-size:30px;
+    font-weight:750;
+    letter-spacing:-1.2px;
+}
+
+.page-sub{
+    color:var(--muted);
+    margin-top:5px;
+    font-size:13px;
+}
+
+.top-actions{
+    display:flex;
+    gap:10px;
+}
+
+/* =========================
+   BUTTON
+========================= */
+
+.btn{
+    border-radius:12px;
+    padding:10px 15px;
+    color:white;
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.08);
+    transition:.25s;
+}
+
+.btn:hover{
+    background:rgba(255,255,255,.12);
+    transform:translateY(-1px);
+}
+
+.btn.primary{
+    background:linear-gradient(135deg,#fff,#d9dce1);
+    color:#08090c;
+    font-weight:700;
+}
+
+.btn.danger{
+    color:#ff7770;
+    background:rgba(255,95,87,.08);
+}
+
+.btn.small{
+    padding:7px 10px;
+    font-size:12px;
+}
+
+/* =========================
+   PANELS
+========================= */
+
+.panel{
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,.075),
+            rgba(255,255,255,.025)
+        );
+    border:1px solid rgba(255,255,255,.075);
+    border-radius:22px;
+    box-shadow:
+        0 20px 70px rgba(0,0,0,.25),
+        inset 0 1px rgba(255,255,255,.06);
+    backdrop-filter:blur(25px);
+}
+
+.panel-pad{
+    padding:22px;
+}
+
+.grid{
+    display:grid;
+    gap:16px;
+}
+
+.grid-4{
+    grid-template-columns:repeat(4,1fr);
+}
+
+.grid-3{
+    grid-template-columns:repeat(3,1fr);
+}
+
+.grid-2{
+    grid-template-columns:repeat(2,1fr);
+}
+
+.stat{
+    padding:20px;
+    min-height:130px;
+}
+
+.stat-label{
+    color:var(--muted);
+    font-size:12px;
+}
+
+.stat-value{
+    font-size:29px;
+    font-weight:750;
+    margin-top:16px;
+    letter-spacing:-1px;
+}
+
+.stat-small{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:8px;
+}
+
+/* =========================
+   SECTION
+========================= */
+
+.section{
+    margin-top:25px;
+}
+
+.section-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:14px;
+}
+
+.section-title{
+    font-size:17px;
+    font-weight:700;
+}
+
+.section-sub{
+    color:var(--muted);
+    font-size:12px;
+    margin-top:4px;
+}
+
+/* =========================
+   STRATEGY CARD
+========================= */
+
+.strategy-card{
+    position:relative;
+    overflow:hidden;
+    padding:24px;
+    min-height:210px;
+    transition:.3s;
+    cursor:pointer;
+}
+
+.strategy-card:hover{
+    transform:translateY(-5px) scale(1.005);
+    border-color:rgba(255,255,255,.15);
+    box-shadow:0 30px 80px rgba(0,0,0,.38);
+}
+
+.strategy-card::after{
+    content:"";
+    position:absolute;
+    width:180px;
+    height:180px;
+    border-radius:50%;
+    background:rgba(96,165,250,.12);
+    filter:blur(55px);
+    right:-70px;
+    top:-70px;
+}
+
+.strategy-name{
+    font-size:19px;
+    font-weight:750;
+}
+
+.strategy-desc{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:7px;
+}
+
+.strategy-stats{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-top:30px;
+}
+
+.mini-stat{
+    padding:10px;
+    border-radius:12px;
+    background:rgba(255,255,255,.04);
+}
+
+.mini-label{
+    color:#747a84;
+    font-size:10px;
+}
+
+.mini-value{
+    font-size:15px;
+    margin-top:4px;
+    font-weight:650;
+}
+
+.strategy-actions{
+    position:absolute;
+    right:18px;
+    bottom:18px;
+    display:flex;
+    gap:6px;
+}
+
+/* =========================
+   TABLE
+========================= */
+
+.table-wrap{
+    overflow:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th{
+    text-align:left;
+    color:#737984;
+    font-size:11px;
+    font-weight:500;
+    padding:12px;
+    border-bottom:1px solid var(--line);
+}
+
+td{
+    padding:14px 12px;
+    border-bottom:1px solid rgba(255,255,255,.045);
+    font-size:12px;
+}
+
+tr:hover td{
+    background:rgba(255,255,255,.025);
+}
+
+.green{
+    color:var(--green);
+}
+
+.red{
+    color:var(--red);
+}
+
+.yellow{
+    color:var(--yellow);
+}
+
+/* =========================
+   EQUITY CURVE
+========================= */
+
+.chart-panel{
+    padding:22px;
+}
+
+.chart{
+    width:100%;
+    height:300px;
+    position:relative;
+    margin-top:15px;
+}
+
+.chart svg{
+    width:100%;
+    height:100%;
+    overflow:visible;
+}
+
+.chart-grid{
+    stroke:rgba(255,255,255,.06);
+    stroke-width:1;
+}
+
+.equity-line{
+    fill:none;
+    stroke:#60a5fa;
+    stroke-width:3;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    filter:drop-shadow(0 0 7px rgba(96,165,250,.35));
+}
+
+.equity-area{
+    fill:url(#equityGradient);
+}
+
+.chart-empty{
+    height:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:#666c75;
+    font-size:13px;
+}
+
+/* =========================
+   ALERT
+========================= */
+
+.alert{
+    border-radius:16px;
+    padding:15px 17px;
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    margin-top:12px;
+}
+
+.alert-title{
+    font-weight:700;
+    font-size:13px;
+}
+
+.alert-text{
+    color:#9a9fa8;
+    font-size:12px;
+    margin-top:4px;
+    line-height:1.6;
+}
+
+.alert.red-alert{
+    background:rgba(255,95,87,.08);
+    border:1px solid rgba(255,95,87,.18);
+}
+
+.alert.yellow-alert{
+    background:rgba(251,191,36,.07);
+    border:1px solid rgba(251,191,36,.17);
+}
+
+.alert.green-alert{
+    background:rgba(52,211,153,.07);
+    border:1px solid rgba(52,211,153,.17);
+}
+
+/* =========================
+   GOALS
+========================= */
+
+.goal-card{
+    position:relative;
+    min-height:290px;
+    padding:22px;
+    overflow:hidden;
+    transition:.35s;
+}
+
+.goal-card:hover{
+    transform:perspective(1000px) rotateX(2deg) rotateY(-2deg) translateY(-4px);
+}
+
+.goal-glow{
+    position:absolute;
+    width:220px;
+    height:220px;
+    border-radius:50%;
+    right:-100px;
+    bottom:-110px;
+    background:rgba(96,165,250,.12);
+    filter:blur(45px);
+}
+
+.goal-type{
+    color:#747a84;
+    font-size:10px;
+    letter-spacing:1.4px;
+}
+
+.goal-name{
+    font-size:21px;
+    font-weight:750;
+    margin-top:8px;
+}
+
+.goal-price{
+    font-size:14px;
+    color:#aeb3bb;
+    margin-top:6px;
+}
+
+.progress{
+    margin-top:25px;
+}
+
+.progress-head{
+    display:flex;
+    justify-content:space-between;
+    font-size:11px;
+    color:#858a94;
+}
+
+.progress-track{
+    height:8px;
+    border-radius:999px;
+    background:rgba(255,255,255,.06);
+    overflow:hidden;
+    margin-top:9px;
+}
+
+.progress-fill{
+    height:100%;
+    border-radius:999px;
+    background:linear-gradient(90deg,#60a5fa,#a78bfa);
+    box-shadow:0 0 18px rgba(96,165,250,.35);
+}
+
+.goal-image{
+    position:absolute;
+    inset:0;
+    z-index:-2;
+    margin:0;
+    border-radius:22px;
+    overflow:hidden;
+    background:
+        radial-gradient(circle at 70% 25%,rgba(167,139,250,.28),transparent 32%),
+        linear-gradient(145deg,#16191f,#0d0f13);
+}
+.goal-image::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+        linear-gradient(90deg,rgba(7,9,13,.96) 0%,rgba(7,9,13,.72) 38%,rgba(7,9,13,.30) 72%,rgba(7,9,13,.58) 100%),
+        linear-gradient(0deg,rgba(7,9,13,.72),transparent 55%);
+}
+.goal-image img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    object-position:center;
+    transform:scale(1.035);
+    transition:transform .8s cubic-bezier(.2,.8,.2,1);
+    filter:saturate(.9) contrast(1.04);
+}
+.goal-card:hover .goal-image img{
+    transform:scale(1.09);
+}
+.goal-card.has-image .goal-type,
+.goal-card.has-image .goal-name,
+.goal-card.has-image .goal-price,
+.goal-card.has-image .progress,
+.goal-card.has-image > div:last-of-type{
+    position:relative;
+    z-index:2;
+}
+.goal-card.has-image .goal-type{color:rgba(255,255,255,.62)}
+.goal-card.has-image .goal-price{color:rgba(255,255,255,.72)}
+.goal-card.has-image .progress-head{color:rgba(255,255,255,.68)}
+.goal-card.has-image .goal-glow{z-index:-1}
+
+.category-tabs{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+}
+.category-tab{
+    padding:9px 13px;
+    border-radius:999px;
+    color:#858b95;
+    background:rgba(255,255,255,.045);
+    border:1px solid rgba(255,255,255,.07);
+    cursor:pointer;
+    transition:.2s;
+    font-size:12px;
+}
+.category-tab:hover,.category-tab.active{
+    color:white;
+    background:rgba(255,255,255,.105);
+    border-color:rgba(255,255,255,.15);
+}
+.category-badge{
+    display:inline-flex;
+    align-items:center;
+    padding:5px 9px;
+    border-radius:999px;
+    font-size:10px;
+    color:#cdd1d8;
+    background:rgba(255,255,255,.055);
+    border:1px solid rgba(255,255,255,.07);
+    margin-top:8px;
+}
+
+.goal-placeholder{
+    font-size:42px;
+    opacity:.7;
+}
+
+.goal-actions{
+    position:absolute;
+    right:18px;
+    top:18px;
+    display:flex;
+    gap:5px;
+}
+
+/* =========================
+   INVESTMENTS
+========================= */
+
+.invest-card{
+    padding:20px;
+}
+
+.invest-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.invest-name{
+    font-size:16px;
+    font-weight:700;
+}
+
+.invest-symbol{
+    font-size:11px;
+    color:#737984;
+    margin-top:4px;
+}
+
+.invest-value{
+    font-size:25px;
+    font-weight:750;
+    margin-top:20px;
+}
+
+.invest-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-top:15px;
+}
+
+.invest-mini{
+    background:rgba(255,255,255,.04);
+    border-radius:12px;
+    padding:10px;
+}
+
+.invest-mini span{
+    display:block;
+    color:#707680;
+    font-size:10px;
+}
+
+.invest-mini strong{
+    display:block;
+    margin-top:5px;
+    font-size:13px;
+}
+
+/* =========================
+   CALENDAR
+========================= */
+
+.calendar{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:7px;
+}
+
+.calendar-head{
+    color:#666c76;
+    text-align:center;
+    font-size:10px;
+    padding:7px;
+}
+
+.day{
+    min-height:75px;
+    border-radius:13px;
+    background:rgba(255,255,255,.035);
+    border:1px solid rgba(255,255,255,.045);
+    padding:9px;
+}
+
+.day.empty{
+    opacity:.2;
+}
+.day.today{
+    border-color:rgba(99,207,255,.65);
+    box-shadow:0 0 0 1px rgba(99,207,255,.12), inset 0 0 18px rgba(99,207,255,.05);
+}
+
+.day-num{
+    color:#8b9099;
+    font-size:10px;
+}
+
+.day-pnl{
+    margin-top:20px;
+    font-size:12px;
+    font-weight:650;
+}
+
+/* =========================
+   FORM / MODAL
+========================= */
+
+.modal-bg{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.7);
+    backdrop-filter:blur(12px);
+    z-index:100;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+.modal-bg.show{
+    display:flex;
+}
+
+.modal{
+    width:min(620px,100%);
+    max-height:90vh;
+    overflow:auto;
+    padding:25px;
+    border-radius:24px;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(35,39,47,.96),
+            rgba(17,19,24,.97)
+        );
+    border:1px solid rgba(255,255,255,.1);
+    box-shadow:0 40px 100px rgba(0,0,0,.65);
+}
+
+.modal-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.modal-title{
+    font-size:19px;
+    font-weight:750;
+}
+
+.close{
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    background:rgba(255,255,255,.06);
+    color:#aaa;
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:13px;
+}
+
+.field{
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+}
+
+.field.full{
+    grid-column:1/-1;
+}
+
+.field label{
+    color:#8b9099;
+    font-size:11px;
+}
+
+.field input,
+.field textarea{
+    width:100%;
+    border:1px solid rgba(255,255,255,.08);
+    background:rgba(255,255,255,.045);
+    color:white;
+    padding:11px 12px;
+    border-radius:11px;
+    outline:none;
+}
+
+.field textarea{
+    min-height:90px;
+    resize:vertical;
+}
+
+.field input:focus,
+.field textarea:focus{
+    border-color:rgba(96,165,250,.55);
+    box-shadow:0 0 0 3px rgba(96,165,250,.08);
+}
+
+.modal-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+    margin-top:20px;
+}
+
+/* =========================
+   CUSTOM SELECT
+========================= */
+
+.custom-select{
+    position:relative;
+}
+
+.select-button{
+    width:100%;
+    padding:11px 12px;
+    border-radius:11px;
+    color:white;
+    background:rgba(255,255,255,.045);
+    border:1px solid rgba(255,255,255,.08);
+    text-align:left;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.select-menu{
+    position:absolute;
+    top:calc(100% + 7px);
+    left:0;
+    right:0;
+    background:#1b1e24;
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:13px;
+    padding:6px;
+    z-index:200;
+    display:none;
+    box-shadow:0 20px 50px rgba(0,0,0,.55);
+}
+
+.custom-select.open .select-menu{
+    display:block;
+}
+
+.select-option{
+    padding:10px;
+    border-radius:9px;
+    font-size:12px;
+    cursor:pointer;
+}
+
+.select-option:hover{
+    background:rgba(255,255,255,.08);
+}
+
+/* =========================
+   CONFIRM DELETE MODAL
+========================= */
+.delete-confirm-bg{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.68);
+    backdrop-filter:blur(14px);
+    z-index:400;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+.delete-confirm-bg.show{display:flex;}
+.delete-confirm{
+    width:min(390px,100%);
+    padding:24px;
+    border-radius:20px;
+    background:linear-gradient(145deg,rgba(35,39,47,.98),rgba(17,19,24,.99));
+    border:1px solid rgba(255,255,255,.10);
+    box-shadow:0 35px 90px rgba(0,0,0,.65);
+}
+.delete-confirm-title{font-size:18px;font-weight:750;}
+.delete-confirm-text{margin-top:9px;color:#999fa9;font-size:13px;line-height:1.6;}
+.delete-confirm-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:22px;}
+
+/* =========================
+   TOAST
+========================= */
+
+.toast{
+    position:fixed;
+    right:25px;
+    bottom:25px;
+    z-index:300;
+    padding:13px 17px;
+    border-radius:14px;
+    background:#1d2026;
+    border:1px solid rgba(255,255,255,.1);
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+    transform:translateY(30px);
+    opacity:0;
+    pointer-events:none;
+    transition:.3s;
+    font-size:12px;
+}
+
+.toast.show{
+    transform:translateY(0);
+    opacity:1;
+}
+
+/* =========================
+   COVER
+========================= */
+
+.cover{
+    position:fixed;
+    inset:0;
+    z-index:500;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+        radial-gradient(circle at 50% 40%,rgba(96,165,250,.11),transparent 30%),
+        #08090c;
+    transition:.8s;
+}
+
+.cover.hide{
+    opacity:0;
+    pointer-events:none;
+    transform:scale(1.03);
+}
+
+.cover-inner{
+    text-align:center;
+}
+
+.cover-title{
+    font-size:clamp(60px,9vw,130px);
+    font-weight:850;
+    letter-spacing:-7px;
+    line-height:.9;
+}
+
+.cover-sub{
+    margin-top:20px;
+    color:#747a85;
+    letter-spacing:4px;
+    font-size:11px;
+}
+
+.enter-btn{
+    margin-top:40px;
+    padding:14px 24px;
+    border-radius:999px;
+    background:white;
+    color:#08090c;
+    font-weight:700;
+    box-shadow:0 20px 60px rgba(255,255,255,.1);
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media(max-width:1000px){
+    .sidebar{
+        width:80px;
+    }
+
+    .logo-title,
+    .logo-sub,
+    .nav-label,
+    .nav-group{
+        display:none;
+    }
+
+    .main{
+        margin-left:80px;
+        width:calc(100% - 80px);
+    }
+
+    .grid-4{
+        grid-template-columns:repeat(2,1fr);
+    }
+}
+
+@media(max-width:700px){
+    .main{
+        padding:20px 15px 30px;
+    }
+
+    .topbar{
+        align-items:flex-start;
+        padding-left:56px;
+    }
+
+    .page-title{
+        font-size:24px;
+    }
+
+    .grid-4,
+    .grid-3,
+    .grid-2{
+        grid-template-columns:1fr;
+    }
+
+    .form-grid{
+        grid-template-columns:1fr;
+    }
+
+    .field.full{
+        grid-column:auto;
+    }
+
+    /* 手機版改成左側抽屜選單 */
+    .sidebar{
+        top:0;
+        bottom:0;
+        left:0;
+        right:auto;
+        width:min(280px,82vw);
+        height:100vh;
+        padding:22px 16px;
+        border-right:1px solid var(--line);
+        border-top:0;
+        display:block;
+        transform:translateX(-105%);
+        transition:transform .28s cubic-bezier(.22,.61,.36,1);
+        box-shadow:20px 0 60px rgba(0,0,0,.45);
+        z-index:300;
+    }
+
+    .sidebar.mobile-open{
+        transform:translateX(0);
+    }
+
+    .logo{
+        display:block;
+        padding:10px 12px 28px;
+    }
+
+    .logo-title,
+    .logo-sub,
+    .nav-label,
+    .nav-group{
+        display:block;
+    }
+
+    .nav{
+        flex-direction:column;
+        width:100%;
+        justify-content:flex-start;
+        gap:6px;
+    }
+
+    .nav-btn{
+        width:100%;
+        text-align:left;
+        padding:13px 14px;
+    }
+
+    .mobile-menu-btn{
+        position:fixed;
+        top:14px;
+        left:14px;
+        width:44px;
+        height:44px;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        gap:5px;
+        border:1px solid rgba(255,255,255,.10);
+        border-radius:13px;
+        background:rgba(18,20,25,.78);
+        backdrop-filter:blur(18px);
+        box-shadow:0 10px 30px rgba(0,0,0,.25);
+        z-index:250;
+    }
+
+    .mobile-menu-btn span{
+        display:block;
+        width:18px;
+        height:2px;
+        border-radius:2px;
+        background:#e7e9ed;
+        transition:.2s;
+    }
+
+    .mobile-menu-overlay{
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,.48);
+        backdrop-filter:blur(3px);
+        opacity:0;
+        pointer-events:none;
+        transition:opacity .28s ease;
+        z-index:290;
+    }
+
+    .mobile-menu-overlay.show{
+        opacity:1;
+        pointer-events:auto;
+    }
+
+    .main{
+        margin-left:0;
+        width:100%;
+    }
+}
+
+@media(min-width:701px){
+    .mobile-menu-btn,
+    .mobile-menu-overlay{
+        display:none;
+    }
+}
+
+@media(prefers-reduced-motion:reduce){
+    *,
+    *::before,
+    *::after{
+        animation:none!important;
+        transition:none!important;
+        scroll-behavior:auto!important;
+    }
+}
+
+/* ===== Equity curves ===== */
+.equity-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.55fr) minmax(300px,.85fr);
+  gap:18px;
+  align-items:start;
+}
+.equity-main-card,
+.equity-mini-card{
+  position:relative;
+  overflow:hidden;
+}
+.equity-main-card::before,
+.equity-mini-card::before{
+  content:"";
+  position:absolute;
+  inset:-35%;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,.075), transparent 30%),
+    radial-gradient(circle at 85% 75%, rgba(120,170,255,.07), transparent 28%);
+  pointer-events:none;
+}
+.equity-chart-wrap{
+  height:380px;
+  margin-top:8px;
+}
+.equity-side{
+  display:grid;
+  gap:14px;
+}
+.equity-mini-card{
+  padding:18px;
+  border-radius:20px;
+}
+.equity-mini-chart{
+  height:150px;
+  margin-top:10px;
+}
+.equity-mini-meta{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:end;
+}
+.equity-mini-title{
+  font-size:15px;
+  font-weight:700;
+  letter-spacing:.01em;
+}
+.equity-mini-type{
+  font-size:11px;
+  opacity:.52;
+  margin-top:4px;
+}
+.equity-mini-value{
+  font-size:18px;
+  font-weight:750;
+  white-space:nowrap;
+}
+.equity-empty{
+  padding:28px 20px;
+  text-align:center;
+  opacity:.5;
+  border:1px dashed rgba(255,255,255,.1);
+  border-radius:18px;
+}
+@media(max-width:1050px){
+  .equity-grid{grid-template-columns:1fr}
+  .equity-side{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:680px){
+  .equity-side{grid-template-columns:1fr}
+  .equity-chart-wrap{height:300px}
+}
+
+
+
+/* Long-term investment curves */
+#investmentChart > div{width:100%}
+@media(max-width:680px){
+    #investmentChart svg{min-width:0}
+}
+
+
+
+/* =========================================================
+   LOGIN SCREEN — MINIMAL SCI-FI
+========================================================= */
+.login-screen{
+    position:fixed;
+    inset:0;
+    z-index:10000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:28px;
+    background:#070a10;
+    overflow:hidden;
+    transition:opacity .65s ease, visibility .65s ease, transform .65s ease;
+}
+.login-screen.hidden{
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transform:scale(1.02);
+}
+.login-grid{
+    position:absolute;
+    inset:-20%;
+    opacity:.18;
+    background-image:
+        linear-gradient(rgba(145,165,255,.08) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(145,165,255,.08) 1px,transparent 1px);
+    background-size:58px 58px;
+    transform:perspective(500px) rotateX(58deg) translateY(90px) scale(1.35);
+    transform-origin:center bottom;
+    animation:loginGridMove 16s linear infinite;
+}
+.login-scan{
+    position:absolute;
+    left:0;
+    right:0;
+    height:1px;
+    top:-5%;
+    background:linear-gradient(90deg,transparent,rgba(150,175,255,.35),transparent);
+    box-shadow:0 0 20px rgba(135,160,255,.18);
+    animation:loginScan 7s ease-in-out infinite;
+}
+.login-orbit{
+    position:absolute;
+    width:620px;
+    height:620px;
+    border:1px solid rgba(147,167,255,.09);
+    border-radius:50%;
+    animation:loginOrbit 18s linear infinite;
+}
+.login-orbit::before,
+.login-orbit::after{
+    content:"";
+    position:absolute;
+    border-radius:50%;
+    background:#aebeff;
+    box-shadow:0 0 18px rgba(150,170,255,.8);
+}
+.login-orbit::before{
+    width:4px;height:4px;left:8%;top:17%;
+}
+.login-orbit::after{
+    width:3px;height:3px;right:14%;bottom:19%;
+}
+.login-orbit.two{
+    width:820px;
+    height:820px;
+    border-style:dashed;
+    opacity:.45;
+    animation-duration:28s;
+    animation-direction:reverse;
+}
+.login-core{
+    position:absolute;
+    width:300px;
+    height:300px;
+    border-radius:50%;
+    background:radial-gradient(circle,rgba(102,130,255,.16),transparent 66%);
+    filter:blur(4px);
+    animation:loginPulse 4s ease-in-out infinite;
+}
+.login-card{
+    position:relative;
+    z-index:5;
+    width:min(390px,100%);
+    padding:34px;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:24px;
+    background:rgba(10,14,22,.72);
+    box-shadow:
+        0 28px 90px rgba(0,0,0,.58),
+        inset 0 1px 0 rgba(255,255,255,.045);
+    backdrop-filter:blur(24px) saturate(125%);
+    -webkit-backdrop-filter:blur(24px) saturate(125%);
+    animation:loginCardIn .8s cubic-bezier(.2,.8,.2,1) both;
+}
+.login-card::before{
+    content:"";
+    position:absolute;
+    inset:-1px;
+    border-radius:24px;
+    pointer-events:none;
+    background:linear-gradient(135deg,rgba(160,180,255,.16),transparent 30%,transparent 70%,rgba(160,180,255,.06));
+    mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    mask-composite:exclude;
+    -webkit-mask-composite:xor;
+    padding:1px;
+}
+.login-brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:30px;
+}
+.login-mark{
+    width:40px;
+    height:40px;
+    border-radius:12px;
+    display:grid;
+    place-items:center;
+    color:#dce4ff;
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:1px;
+    border:1px solid rgba(164,183,255,.26);
+    background:rgba(125,148,255,.08);
+    box-shadow:0 0 25px rgba(110,135,255,.1);
+    animation:loginMarkPulse 3s ease-in-out infinite;
+}
+.login-brand-title{
+    font-size:14px;
+    font-weight:800;
+    letter-spacing:2.4px;
+}
+.login-brand-sub{
+    margin-top:4px;
+    font-size:8px;
+    color:#697286;
+    letter-spacing:2px;
+}
+.login-heading{
+    font-size:30px;
+    line-height:1.15;
+    font-weight:800;
+    letter-spacing:-1.2px;
+    margin:0 0 8px;
+}
+.login-description{
+    color:#777f92;
+    font-size:12px;
+    line-height:1.7;
+    margin-bottom:25px;
+}
+.login-field{margin-bottom:15px}
+.login-field label{
+    display:block;
+    margin:0 0 7px 2px;
+    font-size:10px;
+    color:#7f889b;
+    letter-spacing:.7px;
+}
+.login-input-wrap{position:relative}
+.login-input{
+    width:100%;
+    height:48px;
+    padding:0 14px;
+    border:1px solid rgba(255,255,255,.075);
+    border-radius:12px;
+    outline:none;
+    box-sizing:border-box;
+    background:rgba(255,255,255,.035);
+    color:#eef1f8;
+    font-size:13px;
+    transition:.22s ease;
+}
+.login-input:focus{
+    border-color:rgba(148,170,255,.45);
+    background:rgba(255,255,255,.05);
+    box-shadow:0 0 0 3px rgba(105,130,255,.07),0 0 24px rgba(105,130,255,.07);
+}
+.login-input::placeholder{color:#4d5565}
+.login-password-toggle{
+    position:absolute;
+    right:8px;
+    top:6px;
+    height:36px;
+    padding:0 9px;
+    border:0;
+    border-radius:8px;
+    background:transparent;
+    color:#626b7e;
+    cursor:pointer;
+    font-size:10px;
+}
+.login-password-toggle:hover{color:#aab4ca}
+.login-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin:3px 1px 19px;
+    color:#687184;
+    font-size:10px;
+}
+.login-check{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    cursor:pointer;
+}
+.login-check input{accent-color:#9eafff}
+.login-error{
+    min-height:17px;
+    margin:-2px 0 8px;
+    text-align:center;
+    color:#ff8997;
+    font-size:10px;
+    opacity:0;
+    transition:.2s;
+}
+.login-error.show{opacity:1}
+.login-button{
+    width:100%;
+    height:49px;
+    border:1px solid rgba(190,203,255,.35);
+    border-radius:13px;
+    cursor:pointer;
+    color:#e9edff;
+    font-size:13px;
+    font-weight:800;
+    letter-spacing:.4px;
+    background:linear-gradient(135deg,rgba(145,166,255,.25),rgba(90,112,205,.13));
+    box-shadow:0 12px 30px rgba(64,86,170,.14),inset 0 1px 0 rgba(255,255,255,.1);
+    transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+.login-button:hover{
+    transform:translateY(-2px);
+    border-color:rgba(190,203,255,.58);
+    box-shadow:0 17px 36px rgba(64,86,170,.22),0 0 25px rgba(105,130,255,.08);
+}
+.login-button:active{transform:translateY(0)}
+.login-footer{
+    margin-top:21px;
+    text-align:center;
+    font-size:8px;
+    color:#424a59;
+    letter-spacing:1.6px;
+}
+@keyframes loginGridMove{
+    from{background-position:0 0,0 0}
+    to{background-position:0 58px,58px 0}
+}
+@keyframes loginScan{
+    0%{top:-5%;opacity:0}
+    15%{opacity:.7}
+    50%{top:105%;opacity:.15}
+    65%,100%{top:105%;opacity:0}
+}
+@keyframes loginOrbit{to{transform:rotate(360deg)}}
+@keyframes loginPulse{
+    0%,100%{transform:scale(.88);opacity:.55}
+    50%{transform:scale(1.08);opacity:1}
+}
+@keyframes loginCardIn{
+    from{opacity:0;transform:translateY(18px) scale(.985)}
+    to{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes loginMarkPulse{
+    0%,100%{box-shadow:0 0 18px rgba(110,135,255,.07)}
+    50%{box-shadow:0 0 30px rgba(110,135,255,.2)}
+}
+@media(max-width:520px){
+    .login-card{padding:28px 23px;border-radius:21px}
+    .login-heading{font-size:27px}
+    .login-orbit{width:430px;height:430px}
+    .login-orbit.two{width:570px;height:570px}
+}
+
+</style>
+<style>
+
+/* =========================
+   SCI-FI PAGE TRANSITION
+   ========================= */
+.sci-fi-transition{
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(76,154,255,.13), transparent 22%),
+    radial-gradient(circle at 50% 50%, rgba(0,224,255,.055), transparent 42%),
+    linear-gradient(180deg,#050912 0%,#03060d 55%,#02040a 100%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity .8s cubic-bezier(.22,1,.36,1),visibility .8s;
+}
+.sci-fi-transition.is-hidden{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+}
+.sci-fi-transition.is-active{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+}
+.sf-grid{
+  position:absolute;
+  left:-15%;
+  right:-15%;
+  bottom:-24%;
+  height:72%;
+  transform:perspective(560px) rotateX(61deg);
+  transform-origin:center bottom;
+  background-image:
+    linear-gradient(rgba(77,170,255,.13) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(77,170,255,.13) 1px,transparent 1px);
+  background-size:56px 56px;
+  mask-image:linear-gradient(to top,rgba(0,0,0,.95),transparent);
+  animation:sfGridMove 2.8s linear infinite;
+}
+.sf-grid:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(ellipse at center,transparent 20%,rgba(2,5,12,.72) 85%);
+}
+.sf-scan{
+  position:absolute;
+  left:0;
+  right:0;
+  top:-12%;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(103,202,255,.8),#fff,rgba(103,202,255,.8),transparent);
+  box-shadow:0 0 16px rgba(72,190,255,.75),0 0 45px rgba(72,160,255,.35);
+  animation:sfScan 2.1s ease-in-out infinite;
+  opacity:.72;
+}
+.sf-vignette{
+  position:absolute;
+  inset:0;
+  background:radial-gradient(ellipse at center,transparent 25%,rgba(0,0,0,.35) 62%,rgba(0,0,0,.9) 100%);
+}
+.sf-core{
+  position:absolute;
+  width:230px;
+  height:230px;
+  left:50%;
+  top:45%;
+  transform:translate(-50%,-50%);
+  display:grid;
+  place-items:center;
+}
+.sf-core-glow{
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  background:#dff8ff;
+  box-shadow:
+    0 0 9px #fff,
+    0 0 22px rgba(95,204,255,.95),
+    0 0 60px rgba(62,154,255,.75),
+    0 0 120px rgba(40,105,255,.28);
+  animation:sfPulse 1.45s ease-in-out infinite;
+}
+.sf-ring{
+  position:absolute;
+  border:1px solid rgba(99,195,255,.5);
+  border-radius:50%;
+  box-shadow:inset 0 0 22px rgba(45,150,255,.08),0 0 22px rgba(45,150,255,.08);
+}
+.sf-ring:before,.sf-ring:after{
+  content:"";
+  position:absolute;
+  width:7px;height:7px;
+  border-radius:50%;
+  background:#c8f4ff;
+  box-shadow:0 0 12px #55c8ff,0 0 28px rgba(85,200,255,.6);
+}
+.sf-ring:before{left:50%;top:-4px}
+.sf-ring:after{left:-4px;top:50%}
+.sf-ring-1{width:92px;height:92px;border-style:dashed;animation:sfSpin 7s linear infinite}
+.sf-ring-2{width:150px;height:150px;border-color:rgba(91,174,255,.25);animation:sfSpinReverse 11s linear infinite}
+.sf-ring-3{width:210px;height:210px;border-color:rgba(91,174,255,.16);border-style:dashed;animation:sfSpin 17s linear infinite}
+.sf-crosshair{
+  position:absolute;
+  width:270px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(94,196,255,.4),transparent);
+}
+.sf-crosshair:after{
+  content:"";
+  position:absolute;
+  left:50%;top:50%;
+  width:1px;height:270px;
+  transform:translate(-50%,-50%);
+  background:linear-gradient(180deg,transparent,rgba(94,196,255,.35),transparent);
+}
+.sf-status{
+  position:absolute;
+  top:calc(45% + 142px);
+  left:50%;
+  transform:translateX(-50%);
+  width:min(310px,70vw);
+  text-align:center;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.18em;
+}
+.sf-status-top{
+  color:#dff8ff;
+  font-size:15px;
+  font-weight:700;
+  letter-spacing:.34em;
+  text-shadow:0 0 14px rgba(80,190,255,.65);
+}
+.sf-status-top span{color:#66cfff}
+.sf-status-line{
+  height:1px;
+  margin:13px auto 11px;
+  background:linear-gradient(90deg,transparent,rgba(93,198,255,.65),transparent);
+}
+.sf-status-text{
+  color:rgba(174,219,238,.74);
+  font-size:9px;
+  min-height:12px;
+  text-transform:uppercase;
+}
+.sf-progress{
+  width:100%;
+  height:2px;
+  margin-top:10px;
+  background:rgba(115,178,210,.1);
+  overflow:hidden;
+}
+.sf-progress i{
+  display:block;
+  width:0%;
+  height:100%;
+  background:linear-gradient(90deg,transparent,#63cfff,#e7fbff);
+  box-shadow:0 0 10px rgba(86,201,255,.9);
+  transition:width .15s linear;
+}
+.sf-code{
+  margin-top:8px;
+  color:rgba(110,164,188,.38);
+  font-size:7px;
+  letter-spacing:.12em;
+}
+@keyframes sfScan{
+  0%{top:-8%;opacity:0}
+  12%{opacity:.7}
+  50%{opacity:.85}
+  88%{opacity:.45}
+  100%{top:108%;opacity:0}
+}
+@keyframes sfGridMove{
+  from{background-position:0 0,0 0}
+  to{background-position:0 56px,0 56px}
+}
+@keyframes sfSpin{to{transform:rotate(360deg)}}
+@keyframes sfSpinReverse{to{transform:rotate(-360deg)}}
+@keyframes sfPulse{
+  0%,100%{transform:scale(.78);opacity:.72}
+  50%{transform:scale(1.12);opacity:1}
+}
+@media (prefers-reduced-motion:reduce){
+  .sf-grid,.sf-scan,.sf-ring,.sf-core-glow{animation:none}
+}
+
+</style>
+
+
+</head>
+
+<body>
+
+<!-- Sci-Fi Transition Overlay -->
+<div id="sciFiTransition" class="sci-fi-transition">
+  <div class="sf-grid"></div>
+  <div class="sf-scan"></div>
+  <div class="sf-vignette"></div>
+  <div class="sf-core">
+    <div class="sf-ring sf-ring-1"></div>
+    <div class="sf-ring sf-ring-2"></div>
+    <div class="sf-ring sf-ring-3"></div>
+    <div class="sf-crosshair"></div>
+    <div class="sf-core-glow"></div>
+  </div>
+  <div class="sf-status">
+    <div class="sf-status-top">TRADE<span>OS</span></div>
+    <div class="sf-status-line"></div>
+    <div class="sf-status-text" id="sfStatusText">INITIALIZING SYSTEM</div>
+    <div class="sf-progress"><i id="sfProgressBar"></i></div>
+    <div class="sf-code" id="sfCode">SYS // 0001</div>
+  </div>
+</div>
+
+
+<!-- LOGIN -->
+<div class="login-screen hidden" id="loginScreen">
+    <div class="login-grid"></div>
+    <div class="login-scan"></div>
+    <div class="login-orbit"></div>
+    <div class="login-orbit two"></div>
+    <div class="login-core"></div>
+    <div class="login-card">
+        <div class="login-brand">
+            <div class="login-mark">TO</div>
+            <div>
+                <div class="login-brand-title">TRADE OS</div>
+                <div class="login-brand-sub">PERSONAL CAPITAL SYSTEM</div>
+            </div>
+        </div>
+
+        <h1 class="login-heading">歡迎回來</h1>
+        <div class="login-description">
+            登入你的個人資產管理系統，<br>
+            查看策略、長線投資與資產目標。
+        </div>
+
+        <form onsubmit="handleLogin(event)">
+            <div class="login-field">
+                <label>Email</label>
+                <input
+                    class="login-input"
+                    id="loginUsername"
+                    type="email"
+                    autocomplete="username"
+                    placeholder="輸入 Email"
+                    required
+                >
+            </div>
+
+            <div class="login-field">
+                <label>密碼</label>
+                <div class="login-input-wrap">
+                    <input
+                        class="login-input"
+                        id="loginPassword"
+                        type="password"
+                        autocomplete="current-password"
+                        placeholder="輸入密碼"
+                        required
+                    >
+                    <button type="button" class="login-password-toggle" onclick="toggleLoginPassword()">顯示</button>
+                </div>
+            </div>
+
+            <div class="login-row">
+                <label class="login-check">
+                    <input id="rememberLogin" type="checkbox">
+                    <span>記住登入狀態</span>
+                </label>
+                <span>TRADE OS</span>
+            </div>
+
+            <div class="login-error" id="loginError">Email 或密碼錯誤</div>
+
+            <button class="login-button" type="submit">登入</button>
+        </form>
+
+        <div class="login-footer">
+            <span>PRIVATE CAPITAL WORKSPACE</span>
+        </div>
+    </div>
+</div>
+
+
+<div class="bg-orb orb1"></div>
+<div class="bg-orb orb2"></div>
+<div class="bg-orb orb3"></div>
+
+<!-- COVER -->
+<div class="cover" id="cover">
+    <div class="cover-inner">
+        <div class="cover-title">TRADE<br>OS</div>
+        <div class="cover-sub">PERSONAL CAPITAL SYSTEM</div>
+        <button class="enter-btn" onclick="enterApp()">進入系統</button>
+    </div>
+</div>
+
+<div class="app">
+
+<!-- MOBILE MENU -->
+<button class="mobile-menu-btn" id="mobileMenuBtn" type="button" aria-label="開啟選單" onclick="toggleMobileMenu()">
+    <span></span><span></span><span></span>
+</button>
+<div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="if(event.target===this) closeMobileMenu()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+
+    <div class="logo">
+        <div class="logo-title">TRADE OS</div>
+        <div class="logo-sub">CAPITAL SYSTEM</div>
+    </div>
+
+    <div class="nav">
+
+        <div class="nav-group">SYSTEM</div>
+
+        <button class="nav-btn active"
+                onclick="navigate('overview',this)">
+            <span class="nav-label">總覽</span>
+        </button>
+
+        <button class="nav-btn"
+                onclick="navigate('strategies',this)">
+            <span class="nav-label">我的策略</span>
+        </button>
+
+        <div class="nav-group">WEALTH</div>
+
+        <button class="nav-btn"
+                onclick="navigate('goals',this)">
+            <span class="nav-label">我的目標</span>
+        </button>
+
+        <button class="nav-btn"
+                onclick="navigate('investments',this)">
+            <span class="nav-label">長線投資</span>
+        </button>
+
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+<div id="content"></div>
+
+</main>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg">
+    <div class="modal" id="modal"></div>
+</div>
+
+<div class="delete-confirm-bg" id="deleteConfirmBg" onclick="if(event.target===this) closeDeleteConfirm()">
+    <div class="delete-confirm" role="dialog" aria-modal="true">
+        <div class="delete-confirm-kicker">DELETE</div>
+        <div class="delete-confirm-title" id="deleteConfirmTitle">確認刪除</div>
+        <div class="delete-confirm-text" id="deleteConfirmText">確定要刪除嗎？此操作無法復原。</div>
+        <div class="delete-confirm-actions">
+            <button type="button" class="btn" onclick="closeDeleteConfirm()">取消</button>
+            <button type="button" class="btn danger" onclick="confirmPendingDelete()">確認刪除</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+
+/* =========================================================
+   DATA
+========================================================= */
+
+const STORAGE_KEY = "trade_os_v4";
+
+const defaultState = {
+
+    currentCapital:0,
+
+    strategies:[
+        {
+            id:"s1",
+            name:"XAUUSD 1H 結構回踩",
+            desc:"1H 結構 + Fibonacci + S/R",
+            startingCapital:0
+        },
+        {
+            id:"s2",
+            name:"短線 SNR",
+            desc:"支撐壓力短線交易",
+            startingCapital:0
+        }
+    ],
+
+    trades:[],
+
+    goals:[
+        {
+            id:"g1",
+            type:"money",
+            name:"10,000 U",
+            target:10000,
+            image:""
+        },
+        {
+            id:"g2",
+            type:"money",
+            name:"50,000 U",
+            target:50000,
+            image:""
+        },
+        {
+            id:"g3",
+            type:"money",
+            name:"100,000 U",
+            target:100000,
+            image:""
+        },
+        {
+            id:"g4",
+            type:"dream",
+            name:"Range Rover",
+            target:100000,
+            image:""
+        },
+        {
+            id:"g5",
+            type:"dream",
+            name:"C63",
+            target:80000,
+            image:""
+        }
+    ],
+
+    investments:[],
+    investmentFilter:"all"
+
+};
+
+let state = loadState();
+
+let currentPage = "overview";
+let activeStrategy = null;
+let activeInvestment = null;
+
+let calendarDate = new Date();
+
+
+function loadState(){
+
+    const saved = localStorage.getItem(STORAGE_KEY);
+
+    if(!saved){
+        return structuredClone(defaultState);
+    }
+
+    try{
+        const merged = {
+            ...structuredClone(defaultState),
+            ...JSON.parse(saved)
+        };
+        merged.investments = (merged.investments||[]).map(normalizeInvestment);
+        merged.investmentFilter = merged.investmentFilter || "all";
+
+        // v31: 清除舊版本殘留的測試交易一次。
+        // 只在第一次開啟本版本時執行，之後新增的交易不會被清除。
+        const TRADE_CLEANUP_KEY = "tradeos_v31_trade_cleanup";
+        if(!localStorage.getItem(TRADE_CLEANUP_KEY)){
+            merged.trades = [];
+            localStorage.setItem(TRADE_CLEANUP_KEY, "1");
+        }
+
+        return merged;
+    }catch{
+        return structuredClone(defaultState);
+    }
+}
+
+
+function saveState(){
+    localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(state)
+    );
+}
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function money(v){
+    return Number(v || 0).toLocaleString(
+        "en-US",
+        {
+            minimumFractionDigits:2,
+            maximumFractionDigits:2
+        }
+    ) + " U";
+}
+
+
+function pct(v){
+    return Number(v || 0).toFixed(2) + "%";
+}
+
+
+function uid(prefix="id"){
+    return prefix + "_" + Date.now() + "_" +
+        Math.random().toString(36).slice(2,8);
+}
+
+
+function toast(text){
+
+    const el = document.getElementById("toast");
+
+    el.textContent = text;
+    el.classList.add("show");
+
+    setTimeout(()=>{
+        el.classList.remove("show");
+    },2200);
+}
+
+
+function pnlClass(v){
+    return Number(v)>=0 ? "green" : "red";
+}
+
+
+function getStrategyTrades(strategyId){
+
+    return state.trades.filter(
+        t => t.strategyId === strategyId
+    );
+}
+
+function getStrategyCapital(strategy){
+    const pnl = getStrategyTrades(strategy.id)
+        .reduce((sum,t)=>sum+Number(t.pnl||0),0);
+    return Number(strategy.startingCapital||0)+pnl;
+}
+
+function getLongTermValue(){
+    return state.investments.reduce(
+        (sum,i)=>sum+Number(i.amount||0)+Number(i.pnl||0),0
+    );
+}
+
+function getStrategiesCapital(){
+    return state.strategies.reduce(
+        (sum,s)=>sum+getStrategyCapital(s),0
+    );
+}
+
+function getTotalAssets(){
+    return getLongTermValue()+getStrategiesCapital();
+}
+
+function normalizeInvestment(i){
+    return {
+        ...i,
+        category:["crypto","twstock","usstock"].includes(i.category) ? i.category : "usstock"
+    };
+}
+
+function investmentCategoryLabel(c){
+    return c==="crypto" ? "加密貨幣" : c==="twstock" ? "台股" : "美股";
+}
+
+function setInvestmentFilter(filter){
+    state.investmentFilter=filter;
+    render();
+}
+
+
+/* =========================================================
+   APP NAVIGATION
+========================================================= */
+
+function enterApp(){
+    const cover=document.getElementById("cover");
+    const login=document.getElementById("loginScreen");
+
+    // 正確流程：封面 → 登入頁 → 登入成功 → 科技轉場 → 主系統。
+    cover?.classList.add("hide");
+    login?.classList.remove("hidden");
+    setTimeout(()=>document.getElementById("loginUsername")?.focus(),300);
+}
+
+
+function toggleMobileMenu(){
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('mobileMenuOverlay');
+    const open = sidebar?.classList.toggle('mobile-open');
+    overlay?.classList.toggle('show', !!open);
+}
+
+function closeMobileMenu(){
+    document.querySelector('.sidebar')?.classList.remove('mobile-open');
+    document.getElementById('mobileMenuOverlay')?.classList.remove('show');
+}
+
+function navigate(page,btn){
+
+    currentPage = page;
+
+    document.querySelectorAll(".nav-btn")
+        .forEach(x=>x.classList.remove("active"));
+
+    if(btn){
+        btn.classList.add("active");
+    }else{
+
+        const map = {
+            overview:0,
+            strategies:1,
+            goals:2,
+            investments:3
+        };
+
+        const buttons =
+            document.querySelectorAll(".nav-btn");
+
+        if(buttons[map[page]]){
+            buttons[map[page]]
+                .classList.add("active");
+        }
+
+    }
+
+    render();
+    if(window.innerWidth <= 700){
+        closeMobileMenu();
+    }
+}
+
+
+function render(){
+
+    const content =
+        document.getElementById("content");
+
+    if(currentPage==="overview"){
+        content.innerHTML = overviewPage();
+    }
+
+    if(currentPage==="strategies"){
+        content.innerHTML = strategiesPage();
+    }
+
+    if(currentPage==="goals"){
+        content.innerHTML = goalsPage();
+    }
+
+    if(currentPage==="investments"){
+        content.innerHTML = investmentsPage();
+
+    }
+
+    requestAnimationFrame(()=>{
+        if(currentPage==="strategies"){
+            renderEquityCurve();
+        }
+
+        if(currentPage==="investments" && !activeInvestment){
+            renderInvestmentChart();
+        }
+    });
+}
+
+
+/* =========================================================
+   OVERVIEW
+========================================================= */
+
+function overviewPage(){
+
+    const totalPnl =
+        state.trades.reduce(
+            (sum,t)=>sum+Number(t.pnl||0),
+            0
+        );
+
+    const win =
+        state.trades.filter(t=>Number(t.pnl)>0).length;
+
+    const loss =
+        state.trades.filter(t=>Number(t.pnl)<0).length;
+
+    const winRate =
+        state.trades.length
+        ? win/state.trades.length*100
+        : 0;
+
+    const currentValue = getLongTermValue();
+    const totalAssets = getTotalAssets();
+
+    return `
+
+    <div class="topbar">
+
+        <div>
+            <div class="page-title">總覽</div>
+            <div class="page-sub">
+                你的交易、資金與長期資產
+            </div>
+        </div>
+
+        <div class="top-actions">
+            <button class="btn"
+                onclick="openCapitalModal()">
+                設定資金
+            </button>
+        </div>
+
+    </div>
+
+    <div class="grid grid-4">
+
+        <div class="panel stat">
+            <div class="stat-label">
+                目前總資產
+            </div>
+
+            <div class="stat-value">
+                ${money(totalAssets)}
+            </div>
+
+            
+        </div>
+
+        <div class="panel stat">
+            <div class="stat-label">
+                交易總損益
+            </div>
+
+            <div class="stat-value ${pnlClass(totalPnl)}">
+                ${money(totalPnl)}
+            </div>
+
+            <div class="stat-small">
+                ${state.trades.length} 筆交易
+            </div>
+        </div>
+
+        <div class="panel stat">
+            <div class="stat-label">
+                勝率
+            </div>
+
+            <div class="stat-value">
+                ${pct(winRate)}
+            </div>
+
+            <div class="stat-small">
+                ${win} 勝 / ${loss} 負
+            </div>
+        </div>
+
+        <div class="panel stat">
+            <div class="stat-label">
+                長線投資市值
+            </div>
+
+            <div class="stat-value">
+                ${money(currentValue)}
+            </div>
+
+            <div class="stat-small">
+                ${state.investments.length} 個投資項目
+            </div>
+        </div>
+
+    </div>
+
+    <div class="section">
+
+        <div class="section-head">
+            <div>
+                <div class="section-title">
+                    我的策略
+                </div>
+
+                <div class="section-sub">
+                    選擇策略進入交易分析
+                </div>
+            </div>
+
+            <button class="btn small"
+                onclick="navigate('strategies')">
+                管理策略
+            </button>
+        </div>
+
+        <div class="grid grid-3">
+
+            ${state.strategies.map(strategyCard).join("")}
+
+        </div>
+
+    </div>
+<div class="section">
+
+        <div class="grid grid-2">
+
+            <div class="panel panel-pad">
+
+                <div class="section-head">
+
+                    <div>
+                        <div class="section-title">
+                            目標
+                        </div>
+
+                        <div class="section-sub">
+                            距離下一個資金里程碑
+                        </div>
+                    </div>
+
+                </div>
+
+                ${goalMini()}
+
+            </div>
+
+            <div class="panel panel-pad">
+
+                <div class="section-head">
+
+                    <div>
+                        <div class="section-title">
+                            長線投資
+                        </div>
+
+                        <div class="section-sub">
+                            Portfolio
+                        </div>
+                    </div>
+
+                    <button class="btn small"
+                        onclick="navigate('investments')">
+                        查看
+                    </button>
+
+                </div>
+
+                ${investmentMini()}
+
+            </div>
+
+        </div>
+
+    </div>
+    `;
+}
+
+
+function strategyCard(s){
+
+    const ts = getStrategyTrades(s.id);
+
+    const pnl =
+        ts.reduce((a,t)=>a+Number(t.pnl||0),0);
+
+    const wins =
+        ts.filter(t=>Number(t.pnl)>0).length;
+
+    const wr =
+        ts.length ? wins/ts.length*100 : 0;
+
+    return `
+
+    <div class="panel strategy-card"
+        onclick="openStrategy('${s.id}')">
+
+        <div class="strategy-name">
+            ${escapeHTML(s.name)}
+        </div>
+
+        <div class="strategy-desc">
+            ${escapeHTML(s.desc||"")}
+        </div>
+
+        <div class="strategy-stats">
+
+            <div class="mini-stat">
+                <div class="mini-label">交易</div>
+                <div class="mini-value">
+                    ${ts.length}
+                </div>
+            </div>
+
+            <div class="mini-stat">
+                <div class="mini-label">勝率</div>
+                <div class="mini-value">
+                    ${pct(wr)}
+                </div>
+            </div>
+
+            <div class="mini-stat">
+                <div class="mini-label">損益</div>
+                <div class="mini-value ${pnlClass(pnl)}">
+                    ${money(pnl)}
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    `;
+}
+
+
+function goalMini(){
+
+    const sorted =
+        [...state.goals]
+        .filter(g=>g.target>0)
+        .sort((a,b)=>a.target-b.target);
+
+    const next =
+        sorted.find(g=>getTotalAssets()<g.target)
+        || sorted[sorted.length-1];
+
+    if(!next){
+        return "尚未設定目標";
+    }
+
+    const progress =
+        Math.min(
+            100,
+            getTotalAssets() /
+            next.target * 100
+        );
+
+    return `
+
+        <div style="font-size:18px;font-weight:700;">
+            ${escapeHTML(next.name)}
+        </div>
+
+        <div class="section-sub">
+            ${money(getTotalAssets())}
+            /
+            ${money(next.target)}
+        </div>
+
+        <div class="progress">
+            <div class="progress-head">
+                <span>完成度</span>
+                <span>${pct(progress)}</span>
+            </div>
+
+            <div class="progress-track">
+                <div class="progress-fill"
+                     style="width:${progress}%">
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+
+function investmentMini(){
+
+    if(!state.investments.length){
+        return `
+        <div style="color:#737984;font-size:13px;padding:25px 0;">
+            尚未新增長線投資
+        </div>
+        `;
+    }
+
+    return state.investments
+        .slice(0,4)
+        .map(i=>{
+
+            const value =
+                Number(i.amount||0)+
+                Number(i.pnl||0);
+
+            return `
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                padding:13px 0;
+                border-bottom:1px solid var(--line);
+            ">
+
+                <span>
+                    ${escapeHTML(i.name)}
+                </span>
+
+                <span class="${pnlClass(i.pnl)}">
+                    ${money(value)}
+                </span>
+
+            </div>
+            `;
+
+        }).join("");
+}
+
+
+/* =========================================================
+   STRATEGIES PAGE
+========================================================= */
+
+function strategiesPage(){
+
+    if(activeStrategy){
+
+        return strategyDetailPage(activeStrategy);
+
+    }
+
+    return `
+
+    <div class="topbar">
+
+        <div>
+            <div class="page-title">
+                我的策略
+            </div>
+
+            <div class="page-sub">
+                每一套策略獨立統計
+            </div>
+        </div>
+
+        <button class="btn primary"
+            onclick="openStrategyModal()">
+            ＋ 新增策略
+        </button>
+
+    </div>
+
+    <div class="grid grid-3">
+
+        ${state.strategies.map(strategyManagerCard).join("")}
+
+        <div class="panel strategy-card"
+             onclick="openStrategyModal()"
+             style="
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                border-style:dashed;
+             ">
+
+            <div style="text-align:center;">
+                <div style="font-size:28px;color:#666;">
+                    ＋
+                </div>
+
+                <div style="margin-top:8px;color:#888;">
+                    新增策略
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    `;
+
+}
+
+
+function strategyManagerCard(s){
+
+    const ts = getStrategyTrades(s.id);
+
+    const pnl =
+        ts.reduce((a,t)=>a+Number(t.pnl||0),0);
+
+    return `
+
+    <div class="panel strategy-card"
+        onclick="openStrategy('${s.id}')">
+
+        <div class="strategy-name">
+            ${escapeHTML(s.name)}
+        </div>
+
+        <div class="strategy-desc">
+            ${escapeHTML(s.desc||"")}
+        </div>
+
+        <div class="strategy-stats">
+
+            <div class="mini-stat">
+                <div class="mini-label">
+                    交易
+                </div>
+
+                <div class="mini-value">
+                    ${ts.length}
+                </div>
+            </div>
+
+            <div class="mini-stat">
+                <div class="mini-label">
+                    P&L
+                </div>
+
+                <div class="mini-value ${pnlClass(pnl)}">
+                    ${money(pnl)}
+                </div>
+            </div>
+
+            <div class="mini-stat">
+                <div class="mini-label">
+                    資金
+                </div>
+
+                <div class="mini-value">
+                    ${money(
+                        Number(s.startingCapital||0)+pnl
+                    )}
+                </div>
+            </div>
+
+        </div>
+
+        <div class="strategy-actions"
+             onclick="event.stopPropagation()">
+
+            <button class="btn small"
+                onclick="openStrategyModal('${s.id}')">
+                編輯
+            </button>
+
+            <button class="btn small danger"
+                onclick="deleteStrategy('${s.id}')">
+                刪除
+            </button>
+
+        </div>
+
+    </div>
+
+    `;
+}
+
+
+function openStrategy(id){
+
+    activeStrategy = id;
+    render();
+
+}
+
+
+function backStrategies(){
+
+    activeStrategy = null;
+    render();
+
+}
+
+
+/* =========================================================
+   STRATEGY DETAIL
+========================================================= */
+
+function strategyDailyCalendar(strategyId){
+    const trades=getStrategyTrades(strategyId);
+    const now=new Date();
+    const year=calendarDate.getFullYear();
+    const month=calendarDate.getMonth();
+    const first=new Date(year,month,1);
+    const last=new Date(year,month+1,0);
+    const todayKey=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");
+
+    const daily={};
+    trades.forEach(t=>{
+        const d=String(t.date||"").slice(0,10);
+        if(!d)return;
+        daily[d]=(daily[d]||0)+Number(t.pnl||0);
+    });
+
+    const todayPnl=Number(daily[todayKey]||0);
+    const monthPnl=Object.entries(daily).reduce((sum,[d,p])=>{
+        const x=new Date(d+"T00:00:00");
+        return x.getFullYear()===year && x.getMonth()===month ? sum+p : sum;
+    },0);
+
+    let cells="";
+    for(let i=0;i<first.getDay();i++) cells+='<div class="day empty"></div>';
+    for(let day=1;day<=last.getDate();day++){
+        const key=year+"-"+String(month+1).padStart(2,"0")+"-"+String(day).padStart(2,"0");
+        const pnl=Number(daily[key]||0);
+        const cls=pnl>0?'green':pnl<0?'red':'';
+        cells+=`<div class="day ${key===todayKey?'today':''}">
+            <div class="day-num">${day}</div>
+            <div class="day-pnl ${cls}">${pnl===0?'—':money(pnl)}</div>
+        </div>`;
+    }
+
+    return `
+    <div class="section">
+        <div class="panel panel-pad">
+            <div class="section-head">
+                <div>
+                    <div class="section-title">每日損益</div>
+                    <div class="section-sub">${year} 年 ${month+1} 月交易損益日曆</div>
+                </div>
+                <div style="text-align:right">
+                    <div style="font-size:10px;color:#666c76">今日損益</div>
+                    <div class="mini-value ${pnlClass(todayPnl)}" style="font-size:20px">${money(todayPnl)}</div>
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:7px;margin-bottom:4px">
+                ${["日","一","二","三","四","五","六"].map(x=>`<div class="calendar-head">${x}</div>`).join("")}
+            </div>
+            <div class="calendar">${cells}</div>
+            <div style="margin-top:14px;text-align:right;color:#777;font-size:11px">本月累計 ${money(monthPnl)}</div>
+        </div>
+    </div>`;
+}
+
+function strategyDetailPage(id){
+
+    const s =
+        state.strategies.find(x=>x.id===id);
+
+    if(!s){
+        activeStrategy=null;
+        return strategiesPage();
+    }
+
+    const ts =
+        getStrategyTrades(id);
+
+    const stats =
+        calculateStats(ts);
+
+    return `
+
+    <div class="topbar">
+
+        <div>
+
+            <button class="btn small"
+                onclick="backStrategies()">
+                ← 策略列表
+            </button>
+
+            <div style="margin-top:15px;">
+                <div class="page-title">
+                    ${escapeHTML(s.name)}
+                </div>
+
+                <div class="page-sub">
+                    ${escapeHTML(s.desc||"")}
+                </div>
+            </div>
+
+        </div>
+
+        <button class="btn primary"
+            onclick="openTradeModal('${id}')">
+            ＋ 新增交易
+        </button>
+
+    </div>
+
+    ${analysisAlerts(stats)}
+
+    <div class="grid grid-4">
+
+        ${statBox("總交易數",stats.total)}
+
+        ${statBox("勝率",pct(stats.winRate))}
+
+        ${statBox(
+            "期望值",
+            money(stats.expectancy),
+            stats.expectancy>=0?"green":"red"
+        )}
+
+        ${statBox(
+            "最大回撤",
+            money(stats.maxDrawdown),
+            "red"
+        )}
+
+    </div>
+
+    <div class="grid grid-4 section">
+
+        ${statBox(
+            "平均獲利",
+            money(stats.avgWin),
+            "green"
+        )}
+
+        ${statBox(
+            "平均虧損",
+            money(stats.avgLoss),
+            "red"
+        )}
+
+        ${statBox(
+            "Profit Factor",
+            stats.profitFactor.toFixed(2)
+        )}
+
+        ${statBox(
+            "最大連敗",
+            stats.maxLosingStreak
+        )}
+
+    </div>
+
+    ${strategyDailyCalendar(id)}
+
+    <div class="section">
+
+        <div class="panel chart-panel">
+
+            <div class="section-head">
+
+                <div>
+                    <div class="section-title">
+                        資金曲線
+                    </div>
+
+                    <div class="section-sub">
+                        Equity Curve
+                    </div>
+                </div>
+
+                <div>
+                    起始
+                    ${money(s.startingCapital)}
+                </div>
+
+            </div>
+
+            <div class="chart"
+                 id="equityChart"
+                 data-strategy="${id}">
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="section">
+
+        <div class="panel panel-pad">
+
+            <div class="section-head">
+
+                <div>
+                    <div class="section-title">
+                        策略深度分析
+                    </div>
+
+                    <div class="section-sub">
+                        統計可靠度與交易品質
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="grid grid-3">
+
+                ${statBox(
+                    "95% 信賴區間下限",
+                    money(stats.ciLow),
+                    stats.ciLow>=0?"green":"red"
+                )}
+
+                ${statBox(
+                    "期望值",
+                    money(stats.expectancy),
+                    stats.expectancy>=0?"green":"red"
+                )}
+
+                ${statBox(
+                    "95% 信賴區間上限",
+                    money(stats.ciHigh),
+                    stats.ciHigh>=0?"green":"red"
+                )}
+
+            </div>
+
+            <div style="
+                margin-top:20px;
+                padding:15px;
+                border-radius:14px;
+                background:rgba(255,255,255,.035);
+            ">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    font-size:12px;
+                ">
+
+                    <span>
+                        信賴區間
+                    </span>
+
+                    <span>
+                        ${money(stats.ciLow)}
+                        ～ 
+                        ${money(stats.ciHigh)}
+                    </span>
+
+                </div>
+
+                <div class="progress">
+
+                    <div class="progress-track"
+                         style="height:10px;position:relative;">
+
+                        <div style="
+                            position:absolute;
+                            left:50%;
+                            top:0;
+                            bottom:0;
+                            width:1px;
+                            background:#777;
+                        "></div>
+
+                        <div style="
+                            position:absolute;
+                            left:20%;
+                            right:20%;
+                            height:100%;
+                            background:linear-gradient(
+                                90deg,
+                                #ff5f57,
+                                #fbbf24,
+                                #34d399
+                            );
+                            opacity:.7;
+                            border-radius:999px;
+                        "></div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="section">
+
+        <div class="panel panel-pad">
+
+            <div class="section-head">
+
+                <div>
+                    <div class="section-title">
+                        交易紀錄
+                    </div>
+
+                    <div class="section-sub">
+                        ${ts.length} 筆
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="table-wrap">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>方向</th>
+                            <th>商品</th>
+                            <th>進場</th>
+                            <th>出場</th>
+                            <th>P&L</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                    ${
+                        [...ts]
+                        .reverse()
+                        .map(tradeRow)
+                        .join("")
+                    }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    `;
+}
+
+
+function statBox(label,value,color=""){
+
+    return `
+    <div class="panel stat">
+
+        <div class="stat-label">
+            ${label}
+        </div>
+
+        <div class="stat-value ${color}">
+            ${value}
+        </div>
+
+    </div>
+    `;
+
+}
+
+
+/* =========================================================
+   STATISTICS
+========================================================= */
+
+function calculateStats(trades){
+
+    const pnl =
+        trades.map(t=>Number(t.pnl||0));
+
+    const total = pnl.length;
+
+    if(!total){
+
+        return {
+            total:0,
+            wins:0,
+            losses:0,
+            winRate:0,
+            avgWin:0,
+            avgLoss:0,
+            expectancy:0,
+            ciLow:0,
+            ciHigh:0,
+            profitFactor:0,
+            maxDrawdown:0,
+            maxLosingStreak:0
+        };
+
+    }
+
+    const wins =
+        pnl.filter(x=>x>0);
+
+    const losses =
+        pnl.filter(x=>x<0);
+
+    const winRate =
+        wins.length/total;
+
+    const avgWin =
+        wins.length
+        ? wins.reduce((a,b)=>a+b,0)/wins.length
+        : 0;
+
+    const avgLoss =
+        losses.length
+        ? Math.abs(
+            losses.reduce((a,b)=>a+b,0)
+            /losses.length
+        )
+        : 0;
+
+    /*
+        EXPECTANCY
+
+        E =
+        勝率 × 平均獲利
+        -
+        敗率 × 平均虧損
+    */
+
+    const expectancy =
+        winRate*avgWin
+        -
+        (1-winRate)*avgLoss;
+
+    /*
+        95% CONFIDENCE INTERVAL
+
+        使用交易 P&L 樣本
+        標準誤 = SD / sqrt(n)
+        CI = mean ± 1.96 * SE
+    */
+
+    const mean =
+        pnl.reduce((a,b)=>a+b,0)/total;
+
+    const variance =
+        pnl.reduce(
+            (sum,x)=>sum+Math.pow(x-mean,2),
+            0
+        ) / Math.max(total-1,1);
+
+    const sd = Math.sqrt(variance);
+
+    const se =
+        sd / Math.sqrt(total);
+
+    const ciLow =
+        mean - 1.96*se;
+
+    const ciHigh =
+        mean + 1.96*se;
+
+    /*
+        PROFIT FACTOR
+    */
+
+    const grossWin =
+        wins.reduce((a,b)=>a+b,0);
+
+    const grossLoss =
+        Math.abs(
+            losses.reduce((a,b)=>a+b,0)
+        );
+
+    const profitFactor =
+        grossLoss
+        ? grossWin/grossLoss
+        : wins.length ? Infinity : 0;
+
+    /*
+        MAX DRAWDOWN
+    */
+
+    let equity=0;
+    let peak=0;
+    let maxDD=0;
+
+    [...trades]
+        .sort(
+            (a,b)=>
+                new Date(a.date)-new Date(b.date)
+        )
+        .forEach(t=>{
+
+            equity += Number(t.pnl||0);
+
+            peak =
+                Math.max(peak,equity);
+
+            const dd =
+                peak-equity;
+
+            maxDD =
+                Math.max(maxDD,dd);
+
+        });
+
+    /*
+        LOSING STREAK
+    */
+
+    let currentLoss=0;
+    let maxLosingStreak=0;
+
+    pnl.forEach(x=>{
+
+        if(x<0){
+            currentLoss++;
+            maxLosingStreak =
+                Math.max(
+                    maxLosingStreak,
+                    currentLoss
+                );
+        }else{
+            currentLoss=0;
+        }
+
+    });
+
+    return {
+        total,
+        wins:wins.length,
+        losses:losses.length,
+        winRate:winRate*100,
+        avgWin,
+        avgLoss,
+        expectancy,
+        ciLow,
+        ciHigh,
+        profitFactor,
+        maxDrawdown:maxDD,
+        maxLosingStreak
+    };
+
+}
+
+
+/* =========================================================
+   ALERT SYSTEM
+========================================================= */
+
+function analysisAlerts(stats){
+
+    if(stats.total<30){
+
+        return `
+
+        <div class="alert yellow-alert">
+
+            <div>⚠</div>
+
+            <div>
+
+                <div class="alert-title">
+                    樣本數不足
+                </div>
+
+                <div class="alert-text">
+                    目前只有 ${stats.total} 筆交易。
+                    建議至少累積 30～50 筆，
+                    再判斷策略是否具有穩定優勢。
+                </div>
+
+            </div>
+
+        </div>
+
+        `;
+
+    }
+
+    if(stats.expectancy<0){
+
+        return `
+
+        <div class="alert red-alert">
+
+            <div>!</div>
+
+            <div>
+
+                <div class="alert-title">
+                    期望值為負
+                </div>
+
+                <div class="alert-text">
+                    目前期望值為
+                    ${money(stats.expectancy)}。
+                    長期執行下，這套策略的平均單筆結果
+                    目前不具正期望。
+                </div>
+
+            </div>
+
+        </div>
+
+        `;
+
+    }
+
+    if(stats.ciLow<0 && stats.ciHigh>0){
+
+        return `
+
+        <div class="alert yellow-alert">
+
+            <div>⚠</div>
+
+            <div>
+
+                <div class="alert-title">
+                    統計優勢尚未確認
+                </div>
+
+                <div class="alert-text">
+                    期望值為
+                    ${money(stats.expectancy)}，
+                    但 95% 信賴區間跨越 0。
+                    代表目前資料還不足以確認這個優勢
+                    是否具有統計穩定性。
+                </div>
+
+            </div>
+
+        </div>
+
+        `;
+
+    }
+
+    if(stats.ciHigh<0){
+
+        return `
+
+        <div class="alert red-alert">
+
+            <div>!</div>
+
+            <div>
+
+                <div class="alert-title">
+                    強烈警告：負期望
+                </div>
+
+                <div class="alert-text">
+                    95% 信賴區間完全位於 0 以下。
+                    目前資料顯示策略存在明顯負期望。
+                </div>
+
+            </div>
+
+        </div>
+
+        `;
+
+    }
+
+    return `
+
+    <div class="alert green-alert">
+
+        <div>✓</div>
+
+        <div>
+
+            <div class="alert-title">
+                策略統計狀態良好
+            </div>
+
+            <div class="alert-text">
+                目前期望值為正，
+                且 95% 信賴區間沒有跨越 0。
+            </div>
+
+        </div>
+
+    </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   EQUITY CURVE
+========================================================= */
+
+function renderEquityCurve(){
+
+    const chart =
+        document.getElementById("equityChart");
+
+    if(!chart)return;
+
+    const id =
+        chart.dataset.strategy;
+
+    const strategy =
+        state.strategies.find(s=>s.id===id);
+
+    const trades =
+        getStrategyTrades(id)
+        .sort(
+            (a,b)=>
+                new Date(a.date)-new Date(b.date)
+        );
+
+    if(!trades.length){
+
+        chart.innerHTML = `
+            <div class="chart-empty">
+                尚無交易資料
+            </div>
+        `;
+
+        return;
+    }
+
+    let equity =
+        Number(strategy.startingCapital||0);
+
+    const values =
+        [equity];
+
+    trades.forEach(t=>{
+        equity += Number(t.pnl||0);
+        values.push(equity);
+    });
+
+    const width=1000;
+    const height=280;
+
+    const min =
+        Math.min(...values);
+
+    const max =
+        Math.max(...values);
+
+    const range =
+        max-min || 1;
+
+    const points =
+        values.map((v,i)=>{
+
+            const x =
+                i/(values.length-1)*width;
+
+            const y =
+                height -
+                ((v-min)/range)*(height-30)
+                -15;
+
+            return [x,y];
+
+        });
+
+    const path =
+        points.map(
+            (p,i)=>
+                `${i?"L":"M"} ${p[0]} ${p[1]}`
+        ).join(" ");
+
+    const area =
+        `${path} L ${width} ${height} L 0 ${height} Z`;
+
+    chart.innerHTML = `
+
+    <svg viewBox="0 0 ${width} ${height}"
+         preserveAspectRatio="none">
+
+        <defs>
+
+            <linearGradient
+                id="equityGradient"
+                x1="0"
+                x2="0"
+                y1="0"
+                y2="1">
+
+                <stop
+                    offset="0%"
+                    stop-color="#60a5fa"
+                    stop-opacity=".24"/>
+
+                <stop
+                    offset="100%"
+                    stop-color="#60a5fa"
+                    stop-opacity="0"/>
+
+            </linearGradient>
+
+        </defs>
+
+        <line
+            class="chart-grid"
+            x1="0"
+            y1="70"
+            x2="${width}"
+            y2="70"/>
+
+        <line
+            class="chart-grid"
+            x1="0"
+            y1="140"
+            x2="${width}"
+            y2="140"/>
+
+        <line
+            class="chart-grid"
+            x1="0"
+            y1="210"
+            x2="${width}"
+            y2="210"/>
+
+        <path
+            class="equity-area"
+            d="${area}"/>
+
+        <path
+            class="equity-line"
+            d="${path}"/>
+
+    </svg>
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        color:#656b75;
+        font-size:10px;
+        margin-top:5px;
+    ">
+
+        <span>交易 0</span>
+
+        <span>
+            ${trades.length} 筆
+        </span>
+
+    </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   TRADE ROW
+========================================================= */
+
+function tradeRow(t){
+
+    return `
+    <tr>
+
+        <td>
+            ${t.date||"-"}
+        </td>
+
+        <td>
+            ${t.direction==="long"
+                ? "LONG"
+                : "SHORT"}
+        </td>
+
+        <td>
+            ${escapeHTML(t.symbol||"-")}
+        </td>
+
+        <td>
+            ${t.entry||"-"}
+        </td>
+
+        <td>
+            ${t.exit||"-"}
+        </td>
+
+        <td class="${pnlClass(t.pnl)}">
+            ${money(t.pnl)}
+        </td>
+
+        <td>
+            <button
+                class="btn small danger"
+                onclick="deleteTrade('${t.id}')">
+                刪除
+            </button>
+        </td>
+
+    </tr>
+    `;
+
+}
+
+
+/* =========================================================
+   GOALS
+========================================================= */
+
+function goalsPage(){
+
+    const moneyGoals =
+        state.goals.filter(g=>g.type==="money");
+
+    const dreamGoals =
+        state.goals.filter(g=>g.type==="dream");
+
+    return `
+
+    <div class="topbar">
+
+        <div>
+            <div class="page-title">
+                我的目標
+            </div>
+
+            <div class="page-sub">
+                把資金變成可以看見的進度
+            </div>
+        </div>
+
+        <button class="btn"
+            onclick="openGoalModal()">
+            ＋ 新增目標
+        </button>
+
+    </div>
+
+    <div class="panel panel-pad"
+         style="margin-bottom:20px;position:relative;overflow:hidden;">
+
+        <div style="position:absolute;right:-80px;top:-110px;width:260px;height:260px;border-radius:50%;background:rgba(96,165,250,.13);filter:blur(55px);"></div>
+
+        <div class="section-head">
+
+            <div>
+                <div class="section-title">
+                    目前總資產
+                </div>
+
+                <div class="section-sub">
+                    
+                </div>
+            </div>
+
+            <button class="btn small"
+                onclick="navigate('strategies')">
+                查看資金來源
+            </button>
+
+        </div>
+
+        <div style="
+            font-size:38px;
+            font-weight:800;
+            letter-spacing:-1.5px;
+        ">
+            ${money(getTotalAssets())}
+        </div>
+
+        <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;color:#777d87;font-size:11px;">
+            <span>策略目前資金：<b style="color:#d8dbe0">${money(getStrategiesCapital())}</b></span>
+            <span>長線投資市值：<b style="color:#d8dbe0">${money(getLongTermValue())}</b></span>
+        </div>
+
+    </div>
+
+
+    <div class="section">
+
+        <div class="section-head">
+            <div>
+                <div class="section-title">
+                    資金目標
+                </div>
+
+                <div class="section-sub">
+                    
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-3">
+
+            ${moneyGoals.map(goalCard).join("")}
+
+        </div>
+
+    </div>
+
+
+    <div class="section">
+
+        <div class="section-head">
+            <div>
+                <div class="section-title">
+                    Dream Goals
+                </div>
+
+                <div class="section-sub">
+                    用資金去換取真正想要的東西
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-2">
+
+            ${dreamGoals.map(goalCard).join("")}
+
+        </div>
+
+    </div>
+
+    `;
+
+}
+
+
+function goalCard(g){
+
+    const progress =
+        g.target>0
+        ? Math.min(
+            100,
+            getTotalAssets()/g.target*100
+        )
+        : 0;
+
+    return `
+
+    <div class="panel goal-card ${g.image ? "has-image" : ""}">
+
+        <div class="goal-actions">
+
+            ${g.type==="dream" ? `
+            <button class="btn small" data-upload-goal="${g.id}">圖片</button>
+            ` : ""}
+
+            <button
+                class="btn small"
+                onclick="openGoalModal('${g.id}')">
+                編輯
+            </button>
+
+            <button type="button"
+                class="btn small danger goal-delete"
+                onclick="event.preventDefault(); event.stopPropagation(); deleteGoal('${g.id}'); return false;">
+                ×
+            </button>
+
+        </div>
+
+        <div class="goal-type">
+            ${g.type==="money"
+                ? "MONEY GOAL"
+                : "DREAM GOAL"}
+        </div>
+
+        <div class="goal-name">
+            ${escapeHTML(g.name)}
+        </div>
+
+        <div class="goal-price">
+            目標 ${money(g.target)}
+        </div>
+
+        ${
+            g.type==="dream"
+            ? `
+            <div class="goal-image">
+
+                ${
+                    g.image
+                    ? `<img src="${g.image}">`
+                    : `<div class="goal-placeholder">◆</div>`
+                }
+
+            </div>
+            `
+            : ""
+        }
+
+        <div class="progress">
+
+            <div class="progress-head">
+                <span>目前進度</span>
+                <span>${pct(progress)}</span>
+            </div>
+
+            <div class="progress-track">
+                <div class="progress-fill"
+                     style="width:${progress}%">
+                </div>
+            </div>
+
+        </div>
+
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            margin-top:12px;
+            color:#777d87;
+            font-size:11px;
+        ">
+
+            <span>
+                ${money(getTotalAssets())}
+            </span>
+
+            <span>
+                尚差
+                ${money(
+                    Math.max(
+                        0,
+                        g.target-getTotalAssets()
+                    )
+                )}
+            </span>
+
+        </div>
+
+        <div class="goal-glow"></div>
+
+    </div>
+
+    `;
+}
+
+
+/* =========================================================
+   INVESTMENTS
+========================================================= */
+
+function investmentsPage(){
+
+    if(activeInvestment){
+        return investmentDetailPage(activeInvestment);
+    }
+
+    const all = state.investments.map(normalizeInvestment);
+    const invested = all.reduce((a,i)=>a+Number(i.amount||0),0);
+    const pnl = all.reduce((a,i)=>a+Number(i.pnl||0),0);
+    const value = invested+pnl;
+    const ret = invested ? pnl/invested*100 : 0;
+
+    const categoryStats = ["crypto","twstock","usstock"].map(category=>{
+        const list=all.filter(i=>i.category===category);
+        const amount=list.reduce((a,i)=>a+Number(i.amount||0),0);
+        const cpnl=list.reduce((a,i)=>a+Number(i.pnl||0),0);
+        return {category,amount,pnl:cpnl,value:amount+cpnl};
+    });
+
+    return `
+    <div class="topbar">
+        <div>
+            <div class="page-title">長線投資總覽</div>
+            <div class="page-sub">Portfolio Overview / 所有長線投資</div>
+        </div>
+        <button class="btn primary" onclick="openInvestmentModal()">＋ 新增投資</button>
+    </div>
+
+    <div class="grid grid-4">
+        ${statBox("投入資金",money(invested))}
+        ${statBox("目前損益",money(pnl),pnlClass(pnl))}
+        ${statBox("目前市值",money(value))}
+        ${statBox("總報酬率",pct(ret),pnlClass(ret))}
+    </div>
+
+    <div class="section">
+        <div class="grid grid-3">
+            ${categoryStats.map(x=>`
+                <div class="panel stat" style="min-height:125px;cursor:pointer;" onclick="setInvestmentFilter('${x.category}')">
+                    <div class="stat-label">${investmentCategoryLabel(x.category)}</div>
+                    <div class="stat-value" style="font-size:23px;">${money(x.value)}</div>
+                    <div class="stat-small ${pnlClass(x.pnl)}">${money(x.pnl)} · ${x.amount ? pct(x.pnl/x.amount*100) : "0.00%"}</div>
+                </div>
+            `).join("")}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="panel chart-panel">
+            <div class="section-head">
+                <div>
+                    <div class="section-title">長線投資總資金曲線</div>
+                    <div class="section-sub">所有長線投資合併後的總資產變化</div>
+                </div>
+            </div>
+            <div class="chart" id="investmentChart"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-head">
+            <div>
+                <div class="section-title">我的投資</div>
+                <div class="section-sub">點擊任一投資，查看該標的完整細項</div>
+            </div>
+        </div>
+        <div class="grid grid-3">
+            ${all.length ? all.map(investmentCard).join("") : `
+                <div class="panel panel-pad" style="grid-column:1/-1;text-align:center;padding:50px;color:#737984;">
+                    尚未新增投資
+                </div>
+            `}
+        </div>
+    </div>`;
+}
+
+function investmentCard(i){
+
+    const value =
+        Number(i.amount||0)+
+        Number(i.pnl||0);
+
+    const ret =
+        Number(i.amount)
+        ? Number(i.pnl) /
+          Number(i.amount) *
+          100
+        : 0;
+
+    return `
+
+    <div class="panel invest-card" onclick="openInvestment('${i.id}')">
+
+        <div class="invest-head">
+
+            <div>
+
+                <div class="invest-name">
+                    ${escapeHTML(i.name)}
+                </div>
+
+                <div class="invest-symbol">
+                    ${escapeHTML(i.symbol||"")}
+                </div>
+                <div class="category-badge">${investmentCategoryLabel(i.category)}</div>
+
+            </div>
+
+            <div style="display:flex;gap:6px;" onclick="event.stopPropagation()">
+
+                <button class="btn small"
+                    onclick="openInvestmentModal('${i.id}')">
+                    編輯
+                </button>
+
+                <button type="button" class="btn small danger invest-delete" data-investment-id="${escapeHTML(i.id)}" onclick="event.preventDefault(); event.stopPropagation(); openDeleteConfirm(this.dataset.investmentId); return false;">
+                    刪除
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="invest-value">
+            ${money(value)}
+        </div>
+
+        <div class="invest-grid">
+
+            <div class="invest-mini">
+                <span>投入</span>
+                <strong>
+                    ${money(i.amount)}
+                </strong>
+            </div>
+
+            <div class="invest-mini">
+                <span>損益</span>
+                <strong class="${pnlClass(i.pnl)}">
+                    ${money(i.pnl)}
+                </strong>
+            </div>
+
+            <div class="invest-mini">
+                <span>報酬率</span>
+                <strong class="${pnlClass(ret)}">
+                    ${pct(ret)}
+                </strong>
+            </div>
+
+        </div>
+
+    </div>
+
+    `;
+}
+
+
+
+/* =========================================================
+   INVESTMENT LINE CHART
+========================================================= */
+
+
+
+function openInvestment(id){
+    activeInvestment=id;
+    render();
+}
+
+function backInvestments(){
+    activeInvestment=null;
+    render();
+}
+
+function investmentDetailPage(id){
+    const i=state.investments.find(x=>x.id===id);
+    if(!i){ activeInvestment=null; return investmentsPage(); }
+
+    const amount=Number(i.amount||0);
+    const pnl=Number(i.pnl||0);
+    const value=amount+pnl;
+    const ret=amount?pnl/amount*100:0;
+    const history=Array.isArray(i.history)&&i.history.length ? i.history.slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))) : [
+        {date:i.date||'',value:amount},
+        {date:i.updatedAt||i.date||'',value:value}
+    ];
+
+    return `
+    <div class="topbar">
+        <div>
+            <button class="btn small" onclick="backInvestments()">← 長線投資總覽</button>
+            <div style="margin-top:15px">
+                <div class="page-title">${escapeHTML(i.name)}</div>
+                <div class="page-sub">${escapeHTML(i.symbol||'')} · ${investmentCategoryLabel(i.category)}</div>
+            </div>
+        </div>
+        <div style="display:flex;gap:8px">
+            <button class="btn" onclick="openInvestmentModal('${i.id}')">編輯</button>
+            <button type="button" class="btn danger invest-delete" data-investment-id="${escapeHTML(i.id)}" onclick="event.preventDefault(); event.stopPropagation(); openDeleteConfirm(this.dataset.investmentId); return false;">刪除</button>
+        </div>
+    </div>
+
+    <div class="grid grid-4">
+        ${statBox("投入資金",money(amount))}
+        ${statBox("目前市值",money(value))}
+        ${statBox("目前損益",money(pnl),pnlClass(pnl))}
+        ${statBox("報酬率",pct(ret),pnlClass(ret))}
+    </div>
+
+    <div class="section">
+      <div class="panel panel-pad">
+        <div class="section-title">投資細項</div>
+        <div class="grid grid-3" style="margin-top:16px">
+          <div class="invest-mini"><span>分類</span><strong>${investmentCategoryLabel(i.category)}</strong></div>
+          <div class="invest-mini"><span>代號</span><strong>${escapeHTML(i.symbol||'—')}</strong></div>
+          <div class="invest-mini"><span>建立日期</span><strong>${escapeHTML(i.date||'—')}</strong></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderInvestmentChart(){
+    const chart = document.getElementById("investmentChart");
+    if(!chart) return;
+
+    const investments = (state.investments || [])
+        .map(normalizeInvestment)
+        .slice()
+        .sort((a,b)=>String(a.date||a.createdAt||"").localeCompare(String(b.date||b.createdAt||"")));
+
+    if(!investments.length){
+        chart.innerHTML = `<div class="chart-empty">尚無長線投資資料</div>`;
+        return;
+    }
+
+    // Keep ONE curve only: the combined value of all long-term investments.
+    let total = 0;
+    const values = [0];
+    const labels = [""];
+
+    investments.forEach(i=>{
+        total += Number(i.amount||0) + Number(i.pnl||0);
+        values.push(total);
+        labels.push(i.date || i.createdAt || "");
+    });
+
+    const width = 1000;
+    const height = 280;
+    const padding = 18;
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const range = max - min || 1;
+
+    const points = values.map((v,i)=>{
+        const x = i/(values.length-1)*width;
+        const y = height - ((v-min)/range)*(height-30) - 15;
+        return [x,y];
+    });
+
+    const path = points.map((p,i)=>`${i?"L":"M"} ${p[0]} ${p[1]}`).join(" ");
+    const area = `${path} L ${width} ${height} L 0 ${height} Z`;
+
+    chart.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+        <defs>
+            <linearGradient id="investmentGradient" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#60a5fa" stop-opacity=".24"/>
+                <stop offset="100%" stop-color="#60a5fa" stop-opacity="0"/>
+            </linearGradient>
+        </defs>
+        <line class="chart-grid" x1="0" y1="70" x2="${width}" y2="70"/>
+        <line class="chart-grid" x1="0" y1="140" x2="${width}" y2="140"/>
+        <line class="chart-grid" x1="0" y1="210" x2="${width}" y2="210"/>
+        <path d="${area}" fill="url(#investmentGradient)"/>
+        <path class="equity-line" d="${path}"/>
+    </svg>
+    <div style="display:flex;justify-content:space-between;font-size:10px;opacity:.42;margin-top:4px">
+        <span>${escapeHTML(labels[1] || labels[0] || "")}</span>
+        <span>${escapeHTML(labels.at(-1) || "")}</span>
+    </div>`;
+}
+
+function showModal(html){
+
+    document.getElementById("modal").innerHTML=html;
+
+    document.getElementById("modalBg")
+        .classList.add("show");
+
+}
+
+
+function closeModal(){
+
+    document.getElementById("modalBg")
+        .classList.remove("show");
+
+}
+
+
+document.getElementById("modalBg")
+    .addEventListener("click",e=>{
+
+        if(e.target.id==="modalBg"){
+            closeModal();
+        }
+
+    });
+
+
+/* CAPITAL */
+
+function openCapitalModal(){
+
+    showModal(`
+        <div class="modal-head">
+            <div class="modal-title">目前總資產</div>
+            <button class="close" onclick="closeModal()">×</button>
+        </div>
+
+        <div class="panel panel-pad" style="background:rgba(255,255,255,.035);">
+            <div style="font-size:12px;color:#8b9099;line-height:1.8;">
+                目前總資產不再手動輸入，系統會自動計算：
+            </div>
+            <div style="font-size:18px;font-weight:750;margin-top:12px;">
+                ${money(getTotalAssets())}
+            </div>
+            <div style="margin-top:16px;color:#737984;font-size:11px;line-height:1.8;">
+                策略目前資金：${money(getStrategiesCapital())}<br>
+                長線投資目前市值：${money(getLongTermValue())}
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn primary" onclick="closeModal()">知道了</button>
+        </div>
+    `);
+}
+
+function saveCapital(){
+    closeModal();
+    toast("總資產由策略與長線投資自動同步");
+}
+
+/* STRATEGY */
+
+function openStrategyModal(id){
+
+    const editing =
+        id
+        ? state.strategies.find(s=>s.id===id)
+        : null;
+
+    showModal(`
+
+    <div class="modal-head">
+
+        <div class="modal-title">
+            ${editing?"編輯策略":"新增策略"}
+        </div>
+
+        <button class="close"
+            onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+    <div class="form-grid">
+
+        <div class="field full">
+
+            <label>
+                策略名稱
+            </label>
+
+            <input
+                id="strategyName"
+                value="${editing?escapeAttr(editing.name):""}"
+                placeholder="例如：XAUUSD 1H 結構回踩">
+
+        </div>
+
+        <div class="field full">
+
+            <label>
+                策略描述
+            </label>
+
+            <input
+                id="strategyDesc"
+                value="${editing?escapeAttr(editing.desc||""):""}"
+                placeholder="簡單描述這套策略">
+
+        </div>
+
+        <div class="field">
+
+            <label>
+                起始資金
+            </label>
+
+            <input
+                id="strategyCapital"
+                type="number"
+                value="${editing?editing.startingCapital:0}">
+
+        </div>
+
+    </div>
+
+    <div class="modal-actions">
+
+        <button class="btn"
+            onclick="closeModal()">
+            取消
+        </button>
+
+        <button class="btn primary"
+            onclick="saveStrategy('${id||""}')">
+            儲存
+        </button>
+
+    </div>
+
+    `);
+
+}
+
+
+function saveStrategy(id){
+
+    const name =
+        document.getElementById(
+            "strategyName"
+        ).value.trim();
+
+    const desc =
+        document.getElementById(
+            "strategyDesc"
+        ).value.trim();
+
+    const capital =
+        Number(
+            document.getElementById(
+                "strategyCapital"
+            ).value
+        );
+
+    if(!name){
+
+        toast("請輸入策略名稱");
+        return;
+
+    }
+
+    if(id){
+
+        const s =
+            state.strategies.find(
+                x=>x.id===id
+            );
+
+        s.name=name;
+        s.desc=desc;
+        s.startingCapital=capital;
+
+    }else{
+
+        state.strategies.push({
+            id:uid("strategy"),
+            name,
+            desc,
+            startingCapital:capital
+        });
+
+    }
+
+    saveState();
+    closeModal();
+    render();
+
+    toast(id?"策略已修改":"策略已新增");
+
+}
+
+
+/* DELETE STRATEGY */
+
+function deleteStrategy(id){
+
+    const s =
+        state.strategies.find(
+            x=>x.id===id
+        );
+
+    if(!s)return;
+
+    const count =
+        state.trades.filter(
+            t=>t.strategyId===id
+        ).length;
+
+    const removeTrades =
+        confirm(
+            `確定刪除「${s.name}」？\n\n`+
+            `這套策略目前有 ${count} 筆交易。\n\n`+
+            `按「確定」會連策略與交易一起刪除。\n`+
+            `按「取消」則保留交易紀錄，只刪除策略。`
+        );
+
+    state.strategies =
+        state.strategies.filter(
+            x=>x.id!==id
+        );
+
+    if(removeTrades){
+
+        state.trades =
+            state.trades.filter(
+                t=>t.strategyId!==id
+            );
+
+    }
+
+    activeStrategy=null;
+
+    saveState();
+    render();
+
+    toast("策略已刪除");
+
+}
+
+
+/* TRADE */
+
+function openTradeModal(strategyId){
+
+    showModal(`
+
+    <div class="modal-head">
+
+        <div class="modal-title">
+            新增交易
+        </div>
+
+        <button class="close"
+            onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+    <div class="form-grid">
+
+        <div class="field">
+
+            <label>日期</label>
+
+            <input
+                id="tradeDate"
+                type="date"
+                value="${new Date()
+                    .toISOString()
+                    .slice(0,10)}">
+
+        </div>
+
+        <div class="field">
+
+            <label>商品</label>
+
+            <input
+                id="tradeSymbol"
+                placeholder="XAUUSD">
+
+        </div>
+
+        <div class="field">
+
+            <label>方向</label>
+
+            <div class="custom-select"
+                 id="directionSelect"
+                 data-value="long">
+
+                <button
+                    class="select-button"
+                    onclick="toggleSelect(this)">
+                    LONG
+                    <span>⌄</span>
+                </button>
+
+                <div class="select-menu">
+
+                    <div class="select-option"
+                         onclick="chooseSelect(this,'long','LONG')">
+                        LONG
+                    </div>
+
+                    <div class="select-option"
+                         onclick="chooseSelect(this,'short','SHORT')">
+                        SHORT
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="field">
+
+            <label>進場</label>
+
+            <input
+                id="tradeEntry"
+                type="number"
+                step="any">
+
+        </div>
+
+        <div class="field">
+
+            <label>出場</label>
+
+            <input
+                id="tradeExit"
+                type="number"
+                step="any">
+
+        </div>
+
+        <div class="field">
+
+            <label>P&L</label>
+
+            <input
+                id="tradePnl"
+                type="number"
+                step="0.01"
+                placeholder="+25 / -15">
+
+        </div>
+
+        <div class="field full">
+
+            <label>備註</label>
+
+            <textarea
+                id="tradeNote"
+                placeholder="交易原因、進場條件、錯誤..."></textarea>
+
+        </div>
+
+    </div>
+
+    <div class="modal-actions">
+
+        <button class="btn"
+            onclick="closeModal()">
+            取消
+        </button>
+
+        <button class="btn primary"
+            onclick="saveTrade('${strategyId}')">
+            儲存交易
+        </button>
+
+    </div>
+
+    `);
+
+}
+
+
+function toggleSelect(btn){
+
+    btn.parentElement.classList.toggle("open");
+
+}
+
+
+function chooseSelect(el,value,text){
+
+    const box =
+        el.closest(".custom-select");
+
+    box.dataset.value=value;
+
+    box.querySelector(
+        ".select-button"
+    ).innerHTML =
+        text+" <span>⌄</span>";
+
+    box.classList.remove("open");
+
+}
+
+
+function saveTrade(strategyId){
+
+    const direction =
+        document.getElementById(
+            "directionSelect"
+        ).dataset.value;
+
+    state.trades.push({
+
+        id:uid("trade"),
+
+        strategyId,
+
+        date:
+            document.getElementById(
+                "tradeDate"
+            ).value,
+
+        symbol:
+            document.getElementById(
+                "tradeSymbol"
+            ).value,
+
+        direction,
+
+        entry:
+            Number(
+                document.getElementById(
+                    "tradeEntry"
+                ).value
+            ),
+
+        exit:
+            Number(
+                document.getElementById(
+                    "tradeExit"
+                ).value
+            ),
+
+        pnl:
+            Number(
+                document.getElementById(
+                    "tradePnl"
+                ).value
+            ),
+
+        note:
+            document.getElementById(
+                "tradeNote"
+            ).value
+
+    });
+
+    saveState();
+    closeModal();
+    render();
+
+    toast("交易已新增");
+
+}
+
+
+function deleteTrade(id){
+
+    if(!confirm("確定刪除這筆交易？")){
+        return;
+    }
+
+    state.trades =
+        state.trades.filter(
+            t=>t.id!==id
+        );
+
+    saveState();
+    render();
+
+    toast("交易已刪除");
+
+}
+
+
+/* GOAL */
+
+function openGoalModal(id){
+
+    const g =
+        id
+        ? state.goals.find(x=>x.id===id)
+        : null;
+
+    showModal(`
+
+    <div class="modal-head">
+
+        <div class="modal-title">
+            ${g?"編輯目標":"新增目標"}
+        </div>
+
+        <button class="close"
+            onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+    <div class="form-grid">
+
+        <div class="field">
+
+            <label>目標名稱</label>
+
+            <input
+                id="goalName"
+                value="${g?escapeAttr(g.name):""}"
+                placeholder="例如：C63">
+
+        </div>
+
+        <div class="field">
+
+            <label>目標金額 U</label>
+
+            <input
+                id="goalTarget"
+                type="number"
+                value="${g?g.target:""}">
+
+        </div>
+
+        <div class="field">
+
+            <label>類型</label>
+
+            <div class="custom-select"
+                 id="goalType"
+                 data-value="${g?g.type:"money"}">
+
+                <button
+                    class="select-button"
+                    onclick="toggleSelect(this)">
+                    ${g?.type==="dream"
+                        ?"DREAM GOAL"
+                        :"MONEY GOAL"}
+                    <span>⌄</span>
+                </button>
+
+                <div class="select-menu">
+
+                    <div class="select-option"
+                         onclick="chooseSelect(this,'money','MONEY GOAL')">
+                        MONEY GOAL
+                    </div>
+
+                    <div class="select-option"
+                         onclick="chooseSelect(this,'dream','DREAM GOAL')">
+                        DREAM GOAL
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="modal-actions">
+
+        <button class="btn"
+            onclick="closeModal()">
+            取消
+        </button>
+
+        <button class="btn primary"
+            onclick="saveGoal('${id||""}')">
+            儲存
+        </button>
+
+    </div>
+
+    `);
+
+}
+
+
+function saveGoal(id){
+
+    const name =
+        document.getElementById(
+            "goalName"
+        ).value.trim();
+
+    const target =
+        Number(
+            document.getElementById(
+                "goalTarget"
+            ).value
+        );
+
+    const type =
+        document.getElementById(
+            "goalType"
+        ).dataset.value;
+
+    if(!name || target<=0){
+
+        toast("請完整輸入目標");
+        return;
+
+    }
+
+    if(id){
+
+        const g =
+            state.goals.find(
+                x=>x.id===id
+            );
+
+        g.name=name;
+        g.target=target;
+        g.type=type;
+
+    }else{
+
+        state.goals.push({
+            id:uid("goal"),
+            name,
+            target,
+            type,
+            image:""
+        });
+
+    }
+
+    saveState();
+    closeModal();
+    render();
+
+    toast("目標已更新");
+
+}
+
+
+let pendingDeleteType = null;
+let pendingDeleteId = null;
+
+function openDeleteConfirm(type,id){
+    if(!id) return;
+    const list = type === "goal" ? (state.goals || []) : (state.investments || []);
+    const item = list.find(x => String(x.id) === String(id));
+    if(!item) return toast(type === "goal" ? "找不到這個目標" : "找不到這筆投資");
+
+    pendingDeleteType = type;
+    pendingDeleteId = id;
+
+    const title = document.getElementById("deleteConfirmTitle");
+    const text = document.getElementById("deleteConfirmText");
+    if(title) title.textContent = type === "goal" ? "確認刪除目標" : "確認刪除投資";
+    if(text){
+        const name = item.name || item.symbol || (type === "goal" ? "這個目標" : "這項投資");
+        text.textContent = `確定要刪除「${name}」嗎？此操作無法復原。`;
+    }
+    document.getElementById("deleteConfirmBg")?.classList.add("show");
+}
+
+function closeDeleteConfirm(){
+    pendingDeleteType = null;
+    pendingDeleteId = null;
+    document.getElementById("deleteConfirmBg")?.classList.remove("show");
+}
+
+function confirmPendingDelete(){
+    const type = pendingDeleteType;
+    const id = pendingDeleteId;
+    if(!type || !id) return closeDeleteConfirm();
+
+    if(type === "goal"){
+        const index = (state.goals || []).findIndex(x => String(x.id) === String(id));
+        if(index === -1){
+            closeDeleteConfirm();
+            return toast("找不到這個目標");
+        }
+        state.goals.splice(index,1);
+        saveState();
+        closeDeleteConfirm();
+        render();
+        toast("目標已刪除");
+        return;
+    }
+
+    confirmDeleteInvestment();
+}
+
+function deleteGoal(id){
+    openDeleteConfirm("goal", id);
+}
+
+
+/* INVESTMENT */
+
+function openInvestmentModal(id){
+
+    const i =
+        id
+        ? state.investments.find(x=>x.id===id)
+        : null;
+
+    showModal(`
+
+    <div class="modal-head">
+
+        <div class="modal-title">
+            ${i?"編輯投資":"新增投資"}
+        </div>
+
+        <button class="close"
+            onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+    <div class="form-grid">
+
+        <div class="field full">
+
+            <label>投資名稱</label>
+
+            <input
+                id="investName"
+                value="${i?escapeAttr(i.name):""}"
+                placeholder="例如：VOO">
+
+        </div>
+
+        <div class="field">
+
+            <label>代號</label>
+
+            <input
+                id="investSymbol"
+                value="${i?escapeAttr(i.symbol||""):""}"
+                placeholder="VOO">
+
+        </div>
+
+        <div class="field">
+
+            <label>分類</label>
+
+            <div class="custom-select"
+                 id="investCategory"
+                 data-value="${i?.category || "usstock"}">
+
+                <button class="select-button"
+                        onclick="toggleSelect(this)">
+                    ${investmentCategoryLabel(i?.category || "usstock")}
+                    <span>⌄</span>
+                </button>
+
+                <div class="select-menu">
+                    <div class="select-option" onclick="chooseSelect(this,'crypto','加密貨幣')">加密貨幣</div>
+                    <div class="select-option" onclick="chooseSelect(this,'twstock','台股')">台股</div>
+                    <div class="select-option" onclick="chooseSelect(this,'usstock','美股')">美股</div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="field">
+
+            <label>投入金額</label>
+
+            <input
+                id="investAmount"
+                type="number"
+                step="0.01"
+                value="${i?i.amount:""}">
+
+        </div>
+
+        <div class="field">
+
+            <label>目前損益</label>
+
+            <input
+                id="investPnl"
+                type="number"
+                step="0.01"
+                value="${i?i.pnl:""}">
+
+        </div>
+
+        <div class="field">
+
+            <label>日期</label>
+
+            <input
+                id="investDate"
+                type="date"
+                value="${i
+                    ? i.date
+                    : new Date()
+                        .toISOString()
+                        .slice(0,10)}">
+
+        </div>
+
+    </div>
+
+    <div class="modal-actions">
+
+        <button class="btn"
+            onclick="closeModal()">
+            取消
+        </button>
+
+        <button class="btn primary"
+            onclick="saveInvestment('${id||""}')">
+            儲存
+        </button>
+
+    </div>
+
+    `);
+
+}
+
+
+function saveInvestment(id){
+
+    const name =
+        document.getElementById(
+            "investName"
+        ).value.trim();
+
+    const symbol =
+        document.getElementById(
+            "investSymbol"
+        ).value.trim();
+
+    const category =
+        document.getElementById("investCategory")
+            .dataset.value || "usstock";
+
+    const amount =
+        Number(
+            document.getElementById(
+                "investAmount"
+            ).value
+        );
+
+    const pnl =
+        Number(
+            document.getElementById(
+                "investPnl"
+            ).value
+        );
+
+    const date =
+        document.getElementById(
+            "investDate"
+        ).value;
+
+    if(!name){
+
+        toast("請輸入投資名稱");
+        return;
+
+    }
+
+    if(id){
+
+        const i =
+            state.investments.find(
+                x=>x.id===id
+            );
+
+        i.name=name;
+        i.symbol=symbol;
+        i.category=category;
+        i.amount=amount;
+        i.pnl=pnl;
+        i.date=date;
+        i.updatedAt=new Date().toISOString().slice(0,10);
+        i.history=Array.isArray(i.history)?i.history:[];
+        i.history.push({date:i.updatedAt,value:amount+pnl});
+
+    }else{
+
+        state.investments.push({
+
+            id:uid("investment"),
+
+            name,
+            symbol,
+            category,
+            amount,
+            pnl,
+            date,
+            updatedAt:date,
+            history:[{date,value:amount+pnl}]
+
+        });
+
+    }
+
+    saveState();
+    closeModal();
+    render();
+
+    toast(id?"投資已修改":"投資已新增");
+
+}
+
+
+function confirmDeleteInvestment(){
+    const id = pendingDeleteId;
+    if(pendingDeleteType !== "investment" || !id) return closeDeleteConfirm();
+    const index = (state.investments || []).findIndex(x => String(x.id) === String(id));
+    if(index === -1){
+        closeDeleteConfirm();
+        return toast("找不到這筆投資");
+    }
+    state.investments.splice(index, 1);
+    if(activeInvestment && String(activeInvestment) === String(id)){
+        activeInvestment = null;
+    }
+    saveState();
+    closeDeleteConfirm();
+    render();
+    toast("投資已刪除");
+}
+
+function deleteInvestment(id){
+    openDeleteConfirm("investment", id);
+}
+
+/* =========================================================
+   IMAGE UPLOAD
+========================================================= */
+
+function uploadGoalImage(goalId){
+
+    const input =
+        document.createElement("input");
+
+    input.type="file";
+    input.accept="image/*";
+
+    input.onchange=()=>{
+
+        const file=input.files[0];
+
+        if(!file)return;
+
+        const reader =
+            new FileReader();
+
+        reader.onload=e=>{
+
+            const g =
+                state.goals.find(
+                    x=>x.id===goalId
+                );
+
+            if(g){
+
+                const img = new Image();
+                img.onload = ()=>{
+                    const max=1800;
+                    const scale=Math.min(1,max/Math.max(img.width,img.height));
+                    const canvas=document.createElement("canvas");
+                    canvas.width=Math.round(img.width*scale);
+                    canvas.height=Math.round(img.height*scale);
+                    const ctx=canvas.getContext("2d");
+                    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+                    g.image=canvas.toDataURL("image/jpeg",.86);
+                    saveState();
+                    render();
+                };
+                img.src=e.target.result;
+
+            }
+
+        };
+
+        reader.readAsDataURL(file);
+
+    };
+
+    input.click();
+
+}
+
+
+/* =========================================================
+   SECURITY / TEXT
+========================================================= */
+
+function escapeHTML(str){
+
+    return String(str??"")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+function escapeAttr(str){
+    return escapeHTML(str);
+}
+
+
+/* =========================================================
+   DREAM IMAGE BUTTON
+========================================================= */
+
+document.addEventListener("click",e=>{
+
+    const target =
+        e.target.closest(
+            "[data-upload-goal]"
+        );
+
+    if(target){
+
+        uploadGoalImage(
+            target.dataset.uploadGoal
+        );
+
+    }
+
+});
+
+
+
+/* =========================================================
+   SUPABASE AUTH
+========================================================= */
+const SUPABASE_URL = "https://ujdqnuldchixuihnfozr.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_1O4jOOWg00uYUozanj9Upg_3LAo-phi";
+const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true} });
+
+async function getSupabaseSession(){
+    if(!supabaseClient) return null;
+    const {data,error}=await supabaseClient.auth.getSession();
+    if(error){ console.error("Supabase session error:",error); return null; }
+    return data?.session || null;
+}
+async function initLogin(){
+    const login=document.getElementById("loginScreen");
+    // 啟動時只顯示「進入系統」封面。
+    // 使用者按下「進入系統」後，才顯示登入頁。
+    window.tradeOSSession=null;
+    login?.classList.add("hidden");
+}
+async function handleLogin(event){
+    event.preventDefault();
+    const email=document.getElementById("loginUsername").value.trim();
+    const password=document.getElementById("loginPassword").value;
+    const error=document.getElementById("loginError");
+    const screen=document.getElementById("loginScreen");
+    const button=document.querySelector(".login-button");
+    if(!supabaseClient){ error.textContent="Supabase 初始化失敗，請重新整理頁面"; error.classList.add("show"); return; }
+    if(button){button.disabled=true;button.textContent="登入中...";}
+    error.classList.remove("show");
+    const {data,error:authError}=await supabaseClient.auth.signInWithPassword({email,password});
+    if(authError){
+        console.error("Supabase login error:",authError);
+        error.textContent="Email 或密碼錯誤"; error.classList.add("show");
+        document.getElementById("loginPassword")?.select();
+        if(button){button.disabled=false;button.textContent="登入";}
+        return;
+    }
+    window.tradeOSSession=data.session; screen?.classList.add("hidden");
+    if(typeof startSciFiTransition === "function") startSciFiTransition();
+    else { document.getElementById("cover")?.classList.add("hide"); navigate("overview"); }
+}
+async function logout(){
+    if(supabaseClient) await supabaseClient.auth.signOut();
+    window.tradeOSSession=null; localStorage.removeItem("tradeos_logged_in"); location.reload();
+}
+function toggleLoginPassword(){
+    const input=document.getElementById("loginPassword"); const button=document.querySelector(".login-password-toggle");
+    if(input.type==="password"){input.type="text";button.textContent="隱藏";}else{input.type="password";button.textContent="顯示";}
+}
+
+/* =========================================================
+   INIT
+========================================================= */
+
+// Safety: transition is NEVER allowed to block the login screen on page load.
+(function(){
+    const overlay = document.getElementById("sciFiTransition");
+    if(overlay){
+        overlay.classList.remove("is-active");
+        overlay.classList.add("is-hidden");
+    }
+})();
+
+initLogin();
+render();
+
+
+</script>
+
+
+<script>
+/* Sci-Fi transition controller */
+let sciFiTransitionStarted = false;
+function startSciFiTransition(){
+  const overlay = document.getElementById("sciFiTransition");
+  if(!overlay || sciFiTransitionStarted) return;
+  sciFiTransitionStarted = true;
+
+  const bar = document.getElementById("sfProgressBar");
+  const status = document.getElementById("sfStatusText");
+  const code = document.getElementById("sfCode");
+  const stages = [
+    ["BOOTING CORE","BOOT // 010"],
+    ["BUILDING DATA FIELD","FIELD // 027"],
+    ["CALIBRATING SIGNALS","SIGNAL // 043"],
+    ["MAPPING CAPITAL","MAP // 069"],
+    ["ACCESS GRANTED","READY // 101"]
+  ];
+
+  overlay.classList.remove("is-hidden");
+  overlay.classList.add("is-active");
+  let p = 0;
+  const start = performance.now();
+
+  function tick(now){
+    const elapsed = now - start;
+    p = Math.min(100, elapsed / 2100 * 100);
+    if(bar) bar.style.width = p + "%";
+    const idx = Math.min(stages.length - 1, Math.floor(p / 20));
+    if(status) status.textContent = stages[idx][0];
+    if(code) code.textContent = stages[idx][1];
+
+    if(p < 100){
+      requestAnimationFrame(tick);
+    }else{
+      setTimeout(()=>{
+        overlay.classList.remove("is-active");
+        overlay.classList.add("is-hidden");
+
+        // Login success must go directly into the app.
+        // Never show the cover again, otherwise the user would have to
+        // press「進入系統」a second time.
+        document.getElementById("cover")?.classList.add("hide");
+        document.getElementById("loginScreen")?.classList.add("hidden");
+        navigate("overview");
+      }, 260);
+    }
+  }
+  requestAnimationFrame(tick);
+}
+</script>
+
+</body>
+</html>

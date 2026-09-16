@@ -2169,11 +2169,81 @@ function loadState(){
 }
 
 
+let cloudSyncTimer = null;
+let cloudSyncBusy = false;
+let cloudSyncPending = false;
+
 function saveState(){
     localStorage.setItem(
         STORAGE_KEY,
         JSON.stringify(state)
     );
+    scheduleCloudSync();
+}
+
+function scheduleCloudSync(){
+    if(!window.tradeOSSession || !supabaseClient) return;
+    clearTimeout(cloudSyncTimer);
+    cloudSyncTimer = setTimeout(()=>syncStateToCloud(), 500);
+}
+
+async function syncStateToCloud(){
+    if(!window.tradeOSSession || !supabaseClient) return;
+    if(cloudSyncBusy){
+        cloudSyncPending = true;
+        return;
+    }
+    cloudSyncBusy = true;
+    cloudSyncPending = false;
+    try{
+        const userId = window.tradeOSSession.user.id;
+        const payload = {
+            user_id: userId,
+            data: state,
+            updated_at: new Date().toISOString()
+        };
+        const {error} = await supabaseClient
+            .from("trade_os_data")
+            .upsert(payload, {onConflict:"user_id"});
+        if(error) throw error;
+    }catch(e){
+        console.error("Trade OS cloud sync failed:", e);
+    }finally{
+        cloudSyncBusy = false;
+        if(cloudSyncPending) scheduleCloudSync();
+    }
+}
+
+async function loadStateFromCloud(){
+    if(!window.tradeOSSession || !supabaseClient) return false;
+    try{
+        const userId = window.tradeOSSession.user.id;
+        const {data:row,error} = await supabaseClient
+            .from("trade_os_data")
+            .select("data")
+            .eq("user_id", userId)
+            .maybeSingle();
+        if(error) throw error;
+
+        if(row?.data){
+            state = {
+                ...structuredClone(defaultState),
+                ...row.data
+            };
+            state.investments = (state.investments||[]).map(normalizeInvestment);
+            state.capitalFlows = Array.isArray(state.capitalFlows) ? state.capitalFlows : [];
+            state.investmentFilter = state.investmentFilter || "all";
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            return true;
+        }
+
+        // 第一次使用雲端：把這台裝置現有資料上傳，避免舊資料消失。
+        await syncStateToCloud();
+        return false;
+    }catch(e){
+        console.error("Trade OS cloud load failed:", e);
+        return false;
+    }
 }
 
 
@@ -5577,6 +5647,12 @@ async function handleLogin(event){
             return;
         }
         window.tradeOSSession=data.session;
+
+        // 登入成功後先同步雲端資料，再進入主系統。
+        // 若該帳號尚無雲端資料，則把本機現有資料建立成第一份雲端備份。
+        await loadStateFromCloud();
+        render();
+
         screen?.classList.add("hidden");
         if(typeof startSciFiTransition === "function") startSciFiTransition();
         else { document.getElementById("cover")?.classList.add("hide"); navigate("overview"); }
